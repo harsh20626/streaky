@@ -5,7 +5,8 @@ import { TodoList } from "@/components/TodoList";
 import { TaskAnalytics } from "@/components/TaskAnalytics";
 import { TaskHistory } from "@/components/TaskHistory";
 import { PomodoroTimer } from "@/components/PomodoroTimer";
-import { LayoutDashboard, ListTodo, History, Timer } from "lucide-react";
+import { Journal } from "@/components/Journal";
+import { LayoutDashboard, ListTodo, History, Timer, BookText } from "lucide-react";
 
 export function Dashboard() {
   const [activeTab, setActiveTab] = useState("today");
@@ -27,6 +28,10 @@ export function Dashboard() {
             <Timer className="h-4 w-4" />
             <span className="hidden sm:inline">Focus</span>
           </TabsTrigger>
+          <TabsTrigger value="journal" className="flex items-center gap-2">
+            <BookText className="h-4 w-4" />
+            <span className="hidden sm:inline">Journal</span>
+          </TabsTrigger>
           <TabsTrigger value="analytics" className="flex items-center gap-2">
             <LayoutDashboard className="h-4 w-4" />
             <span className="hidden sm:inline">Analytics</span>
@@ -46,6 +51,10 @@ export function Dashboard() {
         <div className="max-w-md mx-auto">
           <PomodoroTimer />
         </div>
+      </TabsContent>
+      
+      <TabsContent value="journal" className="focus-visible:outline-none">
+        <Journal />
       </TabsContent>
       
       <TabsContent value="analytics" className="focus-visible:outline-none">
