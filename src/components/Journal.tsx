@@ -26,7 +26,9 @@ export function Journal() {
         </TabsList>
         
         <TabsContent value="new" className="focus-visible:outline-none">
-          <JournalEntry />
+          <div className="h-[calc(100vh-250px)] min-h-[500px]">
+            <JournalEntry />
+          </div>
         </TabsContent>
         
         <TabsContent value="insights" className="focus-visible:outline-none">
@@ -36,7 +38,7 @@ export function Journal() {
               <CardDescription>View your emotional trends over time</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="h-[300px] flex items-center justify-center">
+              <div className="h-[500px] flex items-center justify-center">
                 <p className="text-muted-foreground">
                   Start writing journal entries to see your mood insights
                 </p>
@@ -52,7 +54,7 @@ export function Journal() {
               <CardDescription>View your journal entries by date</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="h-[300px] flex items-center justify-center">
+              <div className="h-[500px] flex items-center justify-center">
                 <p className="text-muted-foreground">
                   No journal entries to display yet
                 </p>

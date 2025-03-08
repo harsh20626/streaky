@@ -1,5 +1,4 @@
 
-import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TodoList } from "@/components/TodoList";
 import { TaskAnalytics } from "@/components/TaskAnalytics";
@@ -8,14 +7,23 @@ import { PomodoroTimer } from "@/components/PomodoroTimer";
 import { Journal } from "@/components/Journal";
 import { LayoutDashboard, ListTodo, History, Timer, BookText } from "lucide-react";
 
-export function Dashboard() {
-  const [activeTab, setActiveTab] = useState("today");
+interface DashboardProps {
+  activeTab?: string;
+  onTabChange?: (tab: string) => void;
+}
+
+export function Dashboard({ activeTab = "today", onTabChange }: DashboardProps) {
+  const handleValueChange = (value: string) => {
+    if (onTabChange) {
+      onTabChange(value);
+    }
+  };
   
   return (
     <Tabs 
       defaultValue="today" 
       value={activeTab} 
-      onValueChange={setActiveTab}
+      onValueChange={handleValueChange}
       className="w-full animate-fade-in"
     >
       <div className="flex justify-center mb-6">

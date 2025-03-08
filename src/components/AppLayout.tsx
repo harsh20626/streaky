@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { Dashboard } from "@/components/Dashboard";
 import { format } from "date-fns";
-import { BookText, CheckCircle2, Menu, MoonStar } from "lucide-react";
+import { BookText, CheckCircle2, Menu, MoonStar, LayoutDashboard, Timer, History } from "lucide-react";
 import { useTodo } from "@/contexts/TodoContext";
 import { cn } from "@/lib/utils";
 
@@ -10,6 +10,7 @@ export function AppLayout() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const { todos } = useTodo();
+  const [activeTab, setActiveTab] = useState("today");
   
   const completedToday = todos.filter(todo => todo.completed).length;
   
@@ -24,6 +25,10 @@ export function AppLayout() {
   
   const formattedDate = format(currentTime, "EEEE, MMMM d, yyyy");
   const formattedTime = format(currentTime, "h:mm a");
+
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+  };
 
   return (
     <div className="min-h-screen flex">
@@ -50,22 +55,64 @@ export function AppLayout() {
         <nav className="px-2 py-4">
           <ul className="space-y-1">
             <li>
-              <a 
-                href="#"
-                className="flex items-center gap-3 px-3 py-2 rounded-md text-sidebar-foreground hover:bg-sidebar-accent"
+              <button
+                onClick={() => handleTabChange("today")}
+                className={cn(
+                  "w-full flex items-center gap-3 px-3 py-2 rounded-md text-sidebar-foreground hover:bg-sidebar-accent",
+                  activeTab === "today" && "bg-sidebar-accent"
+                )}
               >
                 <CheckCircle2 className="h-5 w-5 text-todo-purple" />
                 {sidebarOpen && <span>Todo List</span>}
-              </a>
+              </button>
             </li>
             <li>
-              <a 
-                href="#"
-                className="flex items-center gap-3 px-3 py-2 rounded-md text-sidebar-foreground hover:bg-sidebar-accent"
+              <button
+                onClick={() => handleTabChange("pomodoro")}
+                className={cn(
+                  "w-full flex items-center gap-3 px-3 py-2 rounded-md text-sidebar-foreground hover:bg-sidebar-accent",
+                  activeTab === "pomodoro" && "bg-sidebar-accent"
+                )}
+              >
+                <Timer className="h-5 w-5 text-orange-500" />
+                {sidebarOpen && <span>Focus Timer</span>}
+              </button>
+            </li>
+            <li>
+              <button
+                onClick={() => handleTabChange("journal")}
+                className={cn(
+                  "w-full flex items-center gap-3 px-3 py-2 rounded-md text-sidebar-foreground hover:bg-sidebar-accent",
+                  activeTab === "journal" && "bg-sidebar-accent"
+                )}
               >
                 <MoonStar className="h-5 w-5 text-yellow-500" />
                 {sidebarOpen && <span>Journal</span>}
-              </a>
+              </button>
+            </li>
+            <li>
+              <button
+                onClick={() => handleTabChange("analytics")}
+                className={cn(
+                  "w-full flex items-center gap-3 px-3 py-2 rounded-md text-sidebar-foreground hover:bg-sidebar-accent",
+                  activeTab === "analytics" && "bg-sidebar-accent"
+                )}
+              >
+                <LayoutDashboard className="h-5 w-5 text-blue-500" />
+                {sidebarOpen && <span>Analytics</span>}
+              </button>
+            </li>
+            <li>
+              <button
+                onClick={() => handleTabChange("history")}
+                className={cn(
+                  "w-full flex items-center gap-3 px-3 py-2 rounded-md text-sidebar-foreground hover:bg-sidebar-accent",
+                  activeTab === "history" && "bg-sidebar-accent"
+                )}
+              >
+                <History className="h-5 w-5 text-green-500" />
+                {sidebarOpen && <span>History</span>}
+              </button>
             </li>
           </ul>
         </nav>
@@ -87,7 +134,7 @@ export function AppLayout() {
         </header>
 
         <main className="flex-1 container max-w-4xl px-4 sm:px-6 pb-20">
-          <Dashboard />
+          <Dashboard activeTab={activeTab} onTabChange={setActiveTab} />
         </main>
       </div>
     </div>
