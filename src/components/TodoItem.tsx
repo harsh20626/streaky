@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { Todo, Priority } from "@/types/todo";
 import { useTodo } from "@/contexts/TodoContext";
+import { usePomodoro } from "@/contexts/PomodoroContext";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -12,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Trash, Pencil, Check, X } from "lucide-react";
+import { Trash, Pencil, Check, X, Timer } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface TodoItemProps {
@@ -21,6 +22,7 @@ interface TodoItemProps {
 
 export function TodoItem({ todo }: TodoItemProps) {
   const { toggleTodo, deleteTodo, editTodo } = useTodo();
+  const { startTimer, state } = usePomodoro();
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState(todo.text);
   const [editPriority, setEditPriority] = useState<Priority>(todo.priority);
@@ -44,11 +46,17 @@ export function TodoItem({ todo }: TodoItemProps) {
     setEditPriority(todo.priority);
   };
 
+  const handleStartTimer = () => {
+    startTimer(todo.id);
+  };
+
   const priorityColor = {
     low: "text-blue-400",
     medium: "text-yellow-400",
     high: "text-red-400"
   };
+
+  const isCurrentTimerTodo = state.selectedTodoId === todo.id && state.status !== 'idle';
 
   if (isEditing) {
     return (
@@ -102,7 +110,8 @@ export function TodoItem({ todo }: TodoItemProps) {
   return (
     <div className={cn(
       "flex items-center gap-3 p-3 border border-border rounded-lg glass-card animate-fade-in transition-all duration-200",
-      todo.completed && "opacity-60"
+      todo.completed && "opacity-60",
+      isCurrentTimerTodo && "border-todo-purple/60 bg-todo-purple/10"
     )}>
       <Checkbox 
         checked={todo.completed} 
@@ -121,10 +130,26 @@ export function TodoItem({ todo }: TodoItemProps) {
           <span className={cn("text-xs", priorityColor[todo.priority])}>
             {todo.priority.charAt(0).toUpperCase() + todo.priority.slice(1)} Priority
           </span>
+          
+          {isCurrentTimerTodo && (
+            <span className="text-xs bg-todo-purple/20 text-todo-purple px-2 py-0.5 rounded-full flex items-center gap-1">
+              <Timer className="h-3 w-3" /> Active
+            </span>
+          )}
         </div>
       </div>
       
       <div className="flex gap-1">
+        {!todo.completed && !isCurrentTimerTodo && (
+          <Button 
+            size="icon" 
+            variant="ghost" 
+            onClick={handleStartTimer}
+            title="Start Timer"
+          >
+            <Timer className="h-4 w-4" />
+          </Button>
+        )}
         <Button 
           size="icon" 
           variant="ghost" 
