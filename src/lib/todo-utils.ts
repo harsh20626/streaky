@@ -154,7 +154,14 @@ export const resetTodosForNewDay = (): Todo[] => {
     saveDailyLog(currentTodos);
   }
   
-  // Reset with empty array
-  saveTodos([]);
-  return [];
+  // Instead of resetting completely, just reset the completion status
+  // This way tasks stay forever but get reset for the new day
+  const resetTodos = currentTodos.map(todo => ({
+    ...todo,
+    completed: false,
+    completedAt: null
+  }));
+  
+  saveTodos(resetTodos);
+  return resetTodos;
 };

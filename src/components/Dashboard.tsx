@@ -1,11 +1,10 @@
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { TodoList } from "@/components/TodoList";
 import { TaskAnalytics } from "@/components/TaskAnalytics";
 import { TaskHistory } from "@/components/TaskHistory";
 import { PomodoroTimer } from "@/components/PomodoroTimer";
 import { Journal } from "@/components/Journal";
-import { LayoutDashboard, ListTodo, History, Timer, BookText } from "lucide-react";
 
 interface DashboardProps {
   activeTab?: string;
@@ -26,31 +25,6 @@ export function Dashboard({ activeTab = "today", onTabChange }: DashboardProps) 
       onValueChange={handleValueChange}
       className="w-full animate-fade-in"
     >
-      <div className="flex justify-center mb-6">
-        <TabsList className="bg-todo-gray">
-          <TabsTrigger value="today" className="flex items-center gap-2">
-            <ListTodo className="h-4 w-4" />
-            <span className="hidden sm:inline">Today</span>
-          </TabsTrigger>
-          <TabsTrigger value="pomodoro" className="flex items-center gap-2">
-            <Timer className="h-4 w-4" />
-            <span className="hidden sm:inline">Focus</span>
-          </TabsTrigger>
-          <TabsTrigger value="journal" className="flex items-center gap-2">
-            <BookText className="h-4 w-4" />
-            <span className="hidden sm:inline">Journal</span>
-          </TabsTrigger>
-          <TabsTrigger value="analytics" className="flex items-center gap-2">
-            <LayoutDashboard className="h-4 w-4" />
-            <span className="hidden sm:inline">Analytics</span>
-          </TabsTrigger>
-          <TabsTrigger value="history" className="flex items-center gap-2">
-            <History className="h-4 w-4" />
-            <span className="hidden sm:inline">History</span>
-          </TabsTrigger>
-        </TabsList>
-      </div>
-      
       <TabsContent value="today" className="focus-visible:outline-none">
         <TodoList />
       </TabsContent>
