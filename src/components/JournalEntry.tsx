@@ -6,6 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Smile, Frown, Meh, Heart, Star, Sparkles } from "lucide-react";
+import { saveJournal } from "@/lib/journal-utils";
+import { toast } from "sonner";
+import { JournalEntry as JournalEntryType } from "@/types/journal";
 
 const moodOptions = [
   { value: "happy", label: "Happy", icon: Smile },
@@ -16,20 +19,55 @@ const moodOptions = [
   { value: "inspired", label: "Inspired", icon: Sparkles },
 ];
 
-export function JournalEntry() {
+export function JournalEntry({ onSave }: { onSave?: (entry: JournalEntryType) => void }) {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [mood, setMood] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Save journal entry logic would go here
-    console.log({ title, content, mood });
     
-    // Reset form
-    setTitle("");
-    setContent("");
-    setMood("");
+    // Validate inputs
+    if (!title.trim()) {
+      toast.error("Please enter a title for your journal entry");
+      return;
+    }
+    
+    if (!content.trim()) {
+      toast.error("Please write something in your journal entry");
+      return;
+    }
+    
+    if (!mood) {
+      toast.error("Please select a mood for your journal entry");
+      return;
+    }
+    
+    try {
+      // Save the journal entry
+      const savedEntry = saveJournal({
+        title: title.trim(),
+        content: content.trim(),
+        mood: mood as any,
+        tags: []
+      });
+      
+      // Notify the user
+      toast.success("Journal entry saved successfully");
+      
+      // Reset the form
+      setTitle("");
+      setContent("");
+      setMood("");
+      
+      // Call onSave callback if provided
+      if (onSave) {
+        onSave(savedEntry);
+      }
+    } catch (error) {
+      console.error("Error saving journal entry:", error);
+      toast.error("Failed to save journal entry. Please try again.");
+    }
   };
 
   return (
