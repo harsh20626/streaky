@@ -1,10 +1,9 @@
-
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Github, Mail, Microsoft } from "lucide-react";
+import { Github, Mail } from "lucide-react";
 
 export function SignupForm() {
   const [email, setEmail] = useState("");
@@ -124,7 +123,7 @@ export function SignupForm() {
             onClick={() => loginWithMicrosoft()}
             className="bg-todo-gray/50"
           >
-            <Microsoft className="h-5 w-5 mr-2" />
+            <Mail className="h-5 w-5 mr-2" />
             MS
           </Button>
         </div>
