@@ -167,3 +167,37 @@ export const analyzeJournalSentiment = async (journal: JournalEntry): Promise<nu
     return 0;
   }
 };
+
+// Get journals by date
+export const getJournalsByDate = (date: Date): JournalEntry[] => {
+  const journals = getJournals();
+  const dateString = date.toISOString().split('T')[0];
+  
+  return journals.filter(journal => {
+    const journalDate = new Date(journal.createdAt).toISOString().split('T')[0];
+    return journalDate === dateString;
+  });
+};
+
+// Get a map of journal entries per day for a month
+export const getMonthJournals = (month: number, year: number): Record<string, JournalEntry[]> => {
+  const journals = getJournals();
+  const result: Record<string, JournalEntry[]> = {};
+  
+  journals.forEach(journal => {
+    const date = new Date(journal.createdAt);
+    
+    // Only include journals from the specified month and year
+    if (date.getMonth() === month && date.getFullYear() === year) {
+      const dateKey = date.toISOString().split('T')[0];
+      
+      if (!result[dateKey]) {
+        result[dateKey] = [];
+      }
+      
+      result[dateKey].push(journal);
+    }
+  });
+  
+  return result;
+};
