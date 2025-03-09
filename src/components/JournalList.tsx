@@ -6,6 +6,7 @@ import { JournalEntry } from "@/types/journal";
 import { Smile, Frown, Meh, Heart, Star, Sparkles, CalendarDays } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useAuth } from "@/contexts/AuthContext";
 
 // Mood icon mapping
 const moodIcons = {
@@ -29,6 +30,7 @@ const moodColors = {
 
 export function JournalList() {
   const [journals, setJournals] = useState<JournalEntry[]>([]);
+  const { user } = useAuth();
 
   // Load journals on mount
   useEffect(() => {
