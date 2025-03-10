@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -9,7 +10,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { 
   Trophy, Star, Users, MessageSquare, Search, 
   Camera, Image, ArrowLeft, Heart, Reply, Share, 
-  User as UserIcon, Lock, Upload, Send, FileImage, Flame 
+  User as UserIcon, Lock, Upload, Send, FileImage, Flame, 
+  Download, Trash2, X
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -25,6 +27,25 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogClose,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface CommunityPost {
   id: string;
@@ -58,6 +79,9 @@ export default function Community() {
   const [newPostPrivate, setNewPostPrivate] = useState(false);
   const [posts, setPosts] = useState<CommunityPost[]>([]);
   const [privatePosts, setPrivatePosts] = useState<CommunityPost[]>([]);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [postToDelete, setPostToDelete] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   
   useEffect(() => {
     const savedPosts = localStorage.getItem('communityPosts');
@@ -163,6 +187,41 @@ export default function Community() {
     }
   };
   
+  const handleDeletePost = (postId: string) => {
+    setPostToDelete(postId);
+    setDeleteDialogOpen(true);
+  };
+  
+  const confirmDeletePost = () => {
+    if (!postToDelete) return;
+    
+    const isPrivate = privatePosts.some(post => post.id === postToDelete);
+    
+    if (isPrivate) {
+      const updatedPosts = privatePosts.filter(post => post.id !== postToDelete);
+      setPrivatePosts(updatedPosts);
+      localStorage.setItem('privateCommunityPosts', JSON.stringify(updatedPosts));
+    } else {
+      const updatedPosts = posts.filter(post => post.id !== postToDelete);
+      setPosts(updatedPosts);
+      localStorage.setItem('communityPosts', JSON.stringify(updatedPosts));
+    }
+    
+    setDeleteDialogOpen(false);
+    setPostToDelete(null);
+    toast.success("Post deleted successfully");
+  };
+  
+  const handleDownloadImage = (imageUrl: string) => {
+    const link = document.createElement('a');
+    link.href = imageUrl;
+    link.download = `community-image-${Date.now()}.jpg`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success("Image download started");
+  };
+  
   const addComment = (postId: string, comment: string, isPrivate: boolean) => {
     if (!user || !comment.trim()) return;
     
@@ -209,6 +268,7 @@ export default function Community() {
       }
     };
     
+    const isCurrentUserPost = user?.id === post.userId;
     const formattedDate = new Date(post.createdAt).toLocaleString();
     const isLiked = user ? post.likes.includes(user.id) : false;
     
@@ -223,23 +283,46 @@ export default function Community() {
                 <CardDescription className="text-xs text-purple-300/70">{formattedDate}</CardDescription>
               </div>
             </div>
-            {isPrivate && (
-              <Badge variant="outline" className="bg-purple-900/20 text-purple-300">
-                <Lock className="h-3 w-3 mr-1" /> Private
-              </Badge>
-            )}
+            <div className="flex items-center gap-2">
+              {isPrivate && (
+                <Badge variant="outline" className="bg-purple-900/20 text-purple-300">
+                  <Lock className="h-3 w-3 mr-1" /> Private
+                </Badge>
+              )}
+              {isCurrentUserPost && (
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  className="h-8 w-8 text-red-400 hover:text-red-300 hover:bg-red-900/20"
+                  onClick={() => handleDeletePost(post.id)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
           </div>
         </CardHeader>
         <CardContent>
           <p className="text-white/90 whitespace-pre-wrap mb-4">{post.content}</p>
           
           {post.images && post.images.length > 0 && (
-            <div className="rounded-md overflow-hidden my-3 border border-purple-500/20">
+            <div className="rounded-md overflow-hidden my-3 border border-purple-500/20 relative group">
               <img 
                 src={post.images[0]} 
                 alt="Post attachment" 
-                className="w-full object-cover max-h-80"
+                className="w-full object-cover max-h-80 cursor-pointer"
+                onClick={() => setSelectedImage(post.images![0])}
               />
+              <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+                <Button
+                  size="icon"
+                  variant="secondary"
+                  className="h-8 w-8 bg-black/50 hover:bg-black/70"
+                  onClick={() => handleDownloadImage(post.images![0])}
+                >
+                  <Download className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           )}
           
@@ -387,13 +470,15 @@ export default function Community() {
             <Lock className="h-4 w-4 mr-2" />
             Private
           </TabsTrigger>
-          <TabsTrigger 
-            value="leaderboard" 
-            className="data-[state=active]:bg-purple-900/40 data-[state=active]:text-purple-300"
-          >
-            <Trophy className="h-4 w-4 mr-2" />
-            Leaderboard
-          </TabsTrigger>
+          {posts.length > 0 && (
+            <TabsTrigger 
+              value="leaderboard" 
+              className="data-[state=active]:bg-purple-900/40 data-[state=active]:text-purple-300"
+            >
+              <Trophy className="h-4 w-4 mr-2" />
+              Leaderboard
+            </TabsTrigger>
+          )}
         </TabsList>
         
         <TabsContent value="public" className="focus-visible:outline-none">
@@ -429,7 +514,7 @@ export default function Community() {
                             setShowImagePreview(false);
                           }}
                         >
-                          X
+                          <X className="h-4 w-4" />
                         </Button>
                       </div>
                     )}
@@ -525,14 +610,16 @@ export default function Community() {
                       <div className="h-2 w-2 rounded-full bg-green-500"></div>
                     </div>
                     
-                    {posts.slice(0, 3).map((post, index) => (
-                      <div key={index} className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <UserAvatar name={post.userName} src={post.userAvatar} />
-                          <span className="font-medium text-white">{post.userName}</span>
+                    {posts.length > 0 && posts.slice(0, 3).map((post, index) => (
+                      post.userId !== user.id && (
+                        <div key={index} className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <UserAvatar name={post.userName} src={post.userAvatar} />
+                            <span className="font-medium text-white">{post.userName}</span>
+                          </div>
+                          <div className="h-2 w-2 rounded-full bg-green-500"></div>
                         </div>
-                        <div className="h-2 w-2 rounded-full bg-green-500"></div>
-                      </div>
+                      )
                     ))}
                   </div>
                 </CardContent>
@@ -594,7 +681,7 @@ export default function Community() {
                             setShowImagePreview(false);
                           }}
                         >
-                          X
+                          <X className="h-4 w-4" />
                         </Button>
                       </div>
                     )}
@@ -699,7 +786,8 @@ export default function Community() {
                         .filter(post => post.images && post.images.length > 0)
                         .slice(0, 4)
                         .map((post, index) => (
-                          <div key={index} className="aspect-square rounded-md overflow-hidden border border-purple-500/20">
+                          <div key={index} className="aspect-square rounded-md overflow-hidden border border-purple-500/20 cursor-pointer"
+                            onClick={() => setSelectedImage(post.images![0])}>
                             <img 
                               src={post.images![0]} 
                               alt={`Journey day ${index + 1}`} 
@@ -719,137 +807,166 @@ export default function Community() {
           </div>
         </TabsContent>
         
-        <TabsContent value="leaderboard" className="focus-visible:outline-none">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card className="md:col-span-2 bg-gradient-to-br from-todo-gray to-todo-dark border-purple-500/10">
-              <CardHeader>
-                <CardTitle className="text-gradient-primary flex items-center">
-                  <Trophy className="h-5 w-5 mr-2 text-yellow-400" />
-                  Community Leaderboard
-                </CardTitle>
-                <CardDescription className="text-purple-300/70">Top contributors and streak maintainers</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {[1, 2, 3, 4, 5].map((rank) => {
-                    const isCurrentUser = rank === 1;
-                    
-                    return (
-                      <div 
-                        key={rank} 
-                        className={`flex items-center justify-between p-3 rounded-md ${
-                          isCurrentUser ? 'bg-amber-500/10 border border-amber-500/30' : 'border-b border-purple-500/10'
-                        }`}
-                      >
-                        <div className="flex items-center gap-4">
-                          <span className={`
-                            font-bold text-lg w-8 text-center
-                            ${rank === 1 ? 'text-yellow-400' : 
-                              rank === 2 ? 'text-gray-400' : 
-                              rank === 3 ? 'text-amber-700' : 'text-purple-300/70'}
-                          `}>
-                            {rank}
-                          </span>
-                          
-                          <UserAvatar 
-                            name={isCurrentUser ? user.name : `User ${rank}`} 
-                            src={isCurrentUser ? user.photoUrl : undefined} 
-                          />
-                          
-                          <div>
-                            <p className="font-medium text-white">
-                              {isCurrentUser ? user.name : `Community Member ${rank}`}
-                            </p>
-                            <p className="text-xs text-purple-300/70">
-                              {isCurrentUser ? 'You' : `Active since ${new Date().toLocaleDateString()}`}
-                            </p>
-                          </div>
-                        </div>
-                        
-                        <div className="flex items-center gap-4">
-                          <div className="flex flex-col items-center">
-                            <span className="font-bold text-white">{Math.floor(Math.random() * 40) + 10}</span>
-                            <span className="text-xs text-purple-300/70">streak days</span>
-                          </div>
-                          
-                          <div className="flex flex-col items-center">
-                            <span className="font-bold text-white">{Math.floor(Math.random() * 100) + 50}</span>
-                            <span className="text-xs text-purple-300/70">points</span>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </CardContent>
-              <CardFooter className="justify-center">
-                <Button 
-                  variant="outline" 
-                  className="bg-todo-gray/50"
-                >
-                  See Full Leaderboard
-                </Button>
-              </CardFooter>
-            </Card>
-            
-            <div className="space-y-6">
-              <Card className="bg-gradient-to-br from-todo-gray to-todo-dark border-purple-500/10">
+        {posts.length > 0 && (
+          <TabsContent value="leaderboard" className="focus-visible:outline-none">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <Card className="md:col-span-2 bg-gradient-to-br from-todo-gray to-todo-dark border-purple-500/10">
                 <CardHeader>
-                  <CardTitle className="text-gradient-primary">Your Stats</CardTitle>
+                  <CardTitle className="text-gradient-primary flex items-center">
+                    <Trophy className="h-5 w-5 mr-2 text-yellow-400" />
+                    Community Leaderboard
+                  </CardTitle>
+                  <CardDescription className="text-purple-300/70">Top contributors and streak maintainers</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between p-3 bg-todo-gray/30 rounded-md">
-                      <div className="flex items-center gap-2">
-                        <Trophy className="h-5 w-5 text-yellow-400" />
-                        <span className="text-white">Your Rank</span>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between p-3 rounded-md bg-amber-500/10 border border-amber-500/30">
+                      <div className="flex items-center gap-4">
+                        <span className="font-bold text-lg w-8 text-center text-yellow-400">1</span>
+                        
+                        <UserAvatar 
+                          name={user.name} 
+                          src={user.photoUrl} 
+                        />
+                        
+                        <div>
+                          <p className="font-medium text-white">{user.name}</p>
+                          <p className="text-xs text-purple-300/70">You</p>
+                        </div>
                       </div>
-                      <span className="font-bold text-lg text-white">#1</span>
-                    </div>
-                    
-                    <div className="flex items-center justify-between p-3 bg-todo-gray/30 rounded-md">
-                      <div className="flex items-center gap-2">
-                        <Flame className="h-5 w-5 text-orange-500" />
-                        <span className="text-white">Current Streak</span>
+                      
+                      <div className="flex items-center gap-4">
+                        <div className="flex flex-col items-center">
+                          <span className="font-bold text-white">5</span>
+                          <span className="text-xs text-purple-300/70">streak days</span>
+                        </div>
+                        
+                        <div className="flex flex-col items-center">
+                          <span className="font-bold text-white">120</span>
+                          <span className="text-xs text-purple-300/70">points</span>
+                        </div>
                       </div>
-                      <span className="font-bold text-lg text-white">5 days</span>
-                    </div>
-                    
-                    <div className="flex items-center justify-between p-3 bg-todo-gray/30 rounded-md">
-                      <div className="flex items-center gap-2">
-                        <Star className="h-5 w-5 text-purple-400" />
-                        <span className="text-white">Total Points</span>
-                      </div>
-                      <span className="font-bold text-lg text-white">120</span>
                     </div>
                   </div>
                 </CardContent>
               </Card>
               
-              <Card className="bg-gradient-to-br from-todo-gray to-todo-dark border-purple-500/10">
-                <CardHeader>
-                  <CardTitle className="text-gradient-primary">Weekly Challenge</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="p-3 bg-todo-purple/10 border border-todo-purple/30 rounded-md">
-                    <h3 className="font-medium text-white mb-2">Consistency Master</h3>
-                    <p className="text-sm text-purple-300/70 mb-3">
-                      Complete your tasks for 7 days in a row
-                    </p>
-                    <div className="h-2 bg-todo-gray/50 rounded-full overflow-hidden">
-                      <div 
-                        className="h-full bg-todo-purple" 
-                        style={{ width: '71%' }}
-                      ></div>
+              <div className="space-y-6">
+                <Card className="bg-gradient-to-br from-todo-gray to-todo-dark border-purple-500/10">
+                  <CardHeader>
+                    <CardTitle className="text-gradient-primary">Your Stats</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between p-3 bg-todo-gray/30 rounded-md">
+                        <div className="flex items-center gap-2">
+                          <Trophy className="h-5 w-5 text-yellow-400" />
+                          <span className="text-white">Your Rank</span>
+                        </div>
+                        <span className="font-bold text-lg text-white">#1</span>
+                      </div>
+                      
+                      <div className="flex items-center justify-between p-3 bg-todo-gray/30 rounded-md">
+                        <div className="flex items-center gap-2">
+                          <Flame className="h-5 w-5 text-orange-500" />
+                          <span className="text-white">Current Streak</span>
+                        </div>
+                        <span className="font-bold text-lg text-white">5 days</span>
+                      </div>
+                      
+                      <div className="flex items-center justify-between p-3 bg-todo-gray/30 rounded-md">
+                        <div className="flex items-center gap-2">
+                          <Star className="h-5 w-5 text-purple-400" />
+                          <span className="text-white">Total Points</span>
+                        </div>
+                        <span className="font-bold text-lg text-white">120</span>
+                      </div>
                     </div>
-                    <p className="text-xs text-right mt-1 text-purple-300/70">5/7 days</p>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+                
+                <Card className="bg-gradient-to-br from-todo-gray to-todo-dark border-purple-500/10">
+                  <CardHeader>
+                    <CardTitle className="text-gradient-primary">Weekly Challenge</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="p-3 bg-todo-purple/10 border border-todo-purple/30 rounded-md">
+                      <h3 className="font-medium text-white mb-2">Consistency Master</h3>
+                      <p className="text-sm text-purple-300/70 mb-3">
+                        Complete your tasks for 7 days in a row
+                      </p>
+                      <div className="h-2 bg-todo-gray/50 rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-todo-purple" 
+                          style={{ width: '71%' }}
+                        ></div>
+                      </div>
+                      <p className="text-xs text-right mt-1 text-purple-300/70">5/7 days</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
-          </div>
-        </TabsContent>
+          </TabsContent>
+        )}
       </Tabs>
+      
+      {/* Image Viewer Dialog */}
+      <Dialog open={!!selectedImage} onOpenChange={(open) => !open && setSelectedImage(null)}>
+        <DialogContent className="max-w-4xl bg-black/90 border border-purple-500/20">
+          <DialogHeader>
+            <DialogTitle className="text-white">Image View</DialogTitle>
+            <DialogDescription className="text-purple-300/70">
+              View and download the full image
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedImage && (
+            <div className="relative">
+              <img 
+                src={selectedImage} 
+                alt="Full size view" 
+                className="w-full max-h-[70vh] object-contain"
+              />
+              <div className="absolute top-2 right-2 flex gap-2">
+                <Button 
+                  size="sm"
+                  className="bg-todo-purple hover:bg-todo-purple/90"
+                  onClick={() => handleDownloadImage(selectedImage)}
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Download
+                </Button>
+                <DialogClose asChild>
+                  <Button 
+                    size="sm"
+                    variant="secondary"
+                  >
+                    <X className="h-4 w-4 mr-2" />
+                    Close
+                  </Button>
+                </DialogClose>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+      
+      {/* Delete Post Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent className="bg-gradient-to-br from-todo-gray to-todo-dark border-purple-500/10">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-gradient-primary">Delete Post</AlertDialogTitle>
+            <AlertDialogDescription className="text-purple-300/70">
+              Are you sure you want to delete this post? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-todo-gray hover:bg-todo-gray/80">Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDeletePost} className="bg-red-600 hover:bg-red-700">Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

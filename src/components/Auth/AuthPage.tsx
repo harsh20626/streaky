@@ -1,56 +1,87 @@
 
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LoginForm } from "./LoginForm";
 import { SignupForm } from "./SignupForm";
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 
 export function AuthPage() {
-  const [activeTab, setActiveTab] = useState<'login' | 'signup'>('login');
+  const [activeTab, setActiveTab] = useState("login");
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [isInitialMount, setIsInitialMount] = useState(true);
   
-  // If user is already logged in, redirect them to home
   useEffect(() => {
-    if (user) {
-      navigate('/', { replace: true });
+    // To ensure the component mounts fully before any navigation
+    setIsInitialMount(false);
+  }, []);
+
+  useEffect(() => {
+    // Only redirect when it's not the initial mount and user is logged in
+    if (!isInitialMount && user) {
+      navigate("/");
     }
-  }, [user, navigate]);
+  }, [user, navigate, isInitialMount]);
+
+  const goBack = () => {
+    navigate("/");
+  };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gradient-to-b from-todo-dark to-black">
-      <div className="w-full max-w-md mb-8 text-center">
-        <h1 className="text-3xl font-bold text-gradient mb-2">Streaky</h1>
-        <p className="text-purple-300/70">Your personal productivity journey</p>
-      </div>
-      
-      <div className="w-full max-w-md mb-6">
-        <div className="flex rounded-lg overflow-hidden mb-6">
-          <Button
-            variant={activeTab === 'login' ? "default" : "outline"}
-            className={`flex-1 rounded-none py-6 ${activeTab === 'login' ? 'bg-todo-purple hover:bg-todo-purple/90' : 'bg-todo-gray/50'}`}
-            onClick={() => setActiveTab('login')}
-            data-tab="login"
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-todo-dark via-todo-dark to-purple-950/30">
+      <div className="container flex-1 flex items-center justify-center py-12">
+        <div className="w-full max-w-md">
+          <Button 
+            variant="ghost" 
+            className="mb-8 flex items-center gap-1.5 text-purple-300"
+            onClick={goBack}
           >
-            Login
+            <ArrowLeft className="h-4 w-4" />
+            Back to Dashboard
           </Button>
-          <Button
-            variant={activeTab === 'signup' ? "default" : "outline"}
-            className={`flex-1 rounded-none py-6 ${activeTab === 'signup' ? 'bg-todo-purple hover:bg-todo-purple/90' : 'bg-todo-gray/50'}`}
-            onClick={() => setActiveTab('signup')}
-            data-tab="signup"
-          >
-            Sign Up
-          </Button>
+          
+          <Card className="bg-gradient-to-br from-todo-gray to-todo-dark border-purple-500/10">
+            <CardHeader className="space-y-1">
+              <CardTitle className="text-2xl text-gradient-primary">Welcome to Streaky</CardTitle>
+              <CardDescription className="text-purple-300/70">
+                Your all-in-one productivity companion
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                <TabsList className="grid grid-cols-2 mb-6 bg-todo-gray/80 backdrop-blur-sm border border-purple-500/10">
+                  <TabsTrigger 
+                    value="login" 
+                    className="data-[state=active]:bg-purple-900/40 data-[state=active]:text-purple-300"
+                    data-tab="login"
+                  >
+                    Login
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="signup" 
+                    className="data-[state=active]:bg-purple-900/40 data-[state=active]:text-purple-300"
+                    data-tab="signup"
+                  >
+                    Sign Up
+                  </TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="login" className="focus-visible:outline-none">
+                  <LoginForm setActiveTab={setActiveTab} />
+                </TabsContent>
+                
+                <TabsContent value="signup" className="focus-visible:outline-none">
+                  <SignupForm setActiveTab={setActiveTab} />
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
         </div>
-
-        {activeTab === 'login' ? <LoginForm /> : <SignupForm />}
       </div>
-      
-      <p className="text-purple-300/50 text-sm mt-8 max-w-md text-center">
-        By continuing, you agree to our Terms of Service and Privacy Policy.
-      </p>
     </div>
   );
 }
