@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -10,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { 
   Trophy, Star, Users, MessageSquare, Search, 
   Camera, Image, ArrowLeft, Heart, Reply, Share, 
-  User as UserIcon, Lock, Upload, Send, FileImage 
+  User as UserIcon, Lock, Upload, Send, FileImage, Flame 
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -27,7 +26,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-// Types for community features
 interface CommunityPost {
   id: string;
   userId: string;
@@ -62,7 +60,6 @@ export default function Community() {
   const [privatePosts, setPrivatePosts] = useState<CommunityPost[]>([]);
   
   useEffect(() => {
-    // Load posts from localStorage
     const savedPosts = localStorage.getItem('communityPosts');
     const savedPrivatePosts = localStorage.getItem('privateCommunityPosts');
     
@@ -97,8 +94,6 @@ export default function Community() {
       return;
     }
     
-    // In a real app, we would upload the image to a server
-    // For this demo, we'll use a placeholder or convert to data URL
     const imageUrl = newPostImage ? URL.createObjectURL(newPostImage) : undefined;
     
     const newPost: CommunityPost = {
@@ -124,7 +119,6 @@ export default function Community() {
       localStorage.setItem('communityPosts', JSON.stringify(updatedPosts));
     }
     
-    // Reset form
     setNewPostContent("");
     setNewPostImage(null);
     setShowImagePreview(false);
@@ -223,7 +217,7 @@ export default function Community() {
         <CardHeader className="pb-3">
           <div className="flex justify-between items-start">
             <div className="flex items-center gap-3">
-              <UserAvatar name={post.userName} url={post.userAvatar} />
+              <UserAvatar name={post.userName} src={post.userAvatar} />
               <div>
                 <CardTitle className="text-base text-white">{post.userName}</CardTitle>
                 <CardDescription className="text-xs text-purple-300/70">{formattedDate}</CardDescription>
@@ -286,8 +280,8 @@ export default function Community() {
                     <div key={comment.id} className="flex gap-3">
                       <UserAvatar 
                         name={comment.userName} 
-                        url={comment.userAvatar} 
-                        className="h-7 w-7" 
+                        src={comment.userAvatar} 
+                        size="sm"
                       />
                       <div className="flex-1 bg-todo-gray/70 p-2 rounded-md">
                         <div className="flex justify-between">
@@ -307,7 +301,7 @@ export default function Community() {
             </div>
             
             <div className="flex w-full items-center gap-2">
-              <UserAvatar name={user?.name || "Guest"} url={user?.photoUrl} className="h-7 w-7" />
+              <UserAvatar name={user?.name || "Guest"} src={user?.photoUrl} size="sm" />
               <Input 
                 value={commentText}
                 onChange={(e) => setCommentText(e.target.value)}
@@ -525,7 +519,7 @@ export default function Community() {
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <UserAvatar name={user?.name || ""} url={user?.photoUrl} />
+                        <UserAvatar name={user?.name || ""} src={user?.photoUrl} />
                         <span className="font-medium text-white">{user?.name}</span>
                       </div>
                       <div className="h-2 w-2 rounded-full bg-green-500"></div>
@@ -534,7 +528,7 @@ export default function Community() {
                     {posts.slice(0, 3).map((post, index) => (
                       <div key={index} className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <UserAvatar name={post.userName} url={post.userAvatar} />
+                          <UserAvatar name={post.userName} src={post.userAvatar} />
                           <span className="font-medium text-white">{post.userName}</span>
                         </div>
                         <div className="h-2 w-2 rounded-full bg-green-500"></div>
@@ -759,7 +753,7 @@ export default function Community() {
                           
                           <UserAvatar 
                             name={isCurrentUser ? user.name : `User ${rank}`} 
-                            url={isCurrentUser ? user.photoUrl : undefined} 
+                            src={isCurrentUser ? user.photoUrl : undefined} 
                           />
                           
                           <div>
