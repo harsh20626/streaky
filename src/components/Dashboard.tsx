@@ -6,6 +6,7 @@ import { TaskHistory } from "@/components/TaskHistory";
 import { PomodoroTimer } from "@/components/PomodoroTimer";
 import { Journal } from "@/components/Journal";
 import { Achievements } from "@/components/Achievements";
+import { Motivation } from "@/components/Motivation";
 
 interface DashboardProps {
   activeTab?: string;
@@ -38,6 +39,10 @@ export function Dashboard({ activeTab = "today", onTabChange }: DashboardProps) 
       
       <TabsContent value="journal" className="focus-visible:outline-none">
         <Journal />
+      </TabsContent>
+      
+      <TabsContent value="motivation" className="focus-visible:outline-none">
+        <Motivation />
       </TabsContent>
       
       <TabsContent value="analytics" className="focus-visible:outline-none">

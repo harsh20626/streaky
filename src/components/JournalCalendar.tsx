@@ -3,13 +3,25 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { getJournals } from "@/lib/journal-utils";
+import { getJournals, deleteJournal } from "@/lib/journal-utils";
 import { JournalEntry } from "@/types/journal";
 import { format } from "date-fns";
-import { Smile, Frown, Meh, Heart, Star, Sparkles } from "lucide-react";
+import { Smile, Frown, Meh, Heart, Star, Sparkles, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 // Mood icon mapping
 const moodIcons = {
@@ -36,9 +48,11 @@ export function JournalCalendar() {
   const [journals, setJournals] = useState<JournalEntry[]>([]);
   const [journalsByDate, setJournalsByDate] = useState<Record<string, JournalEntry[]>>({});
   const [selectedDateJournals, setSelectedDateJournals] = useState<JournalEntry[]>([]);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [journalToDelete, setJournalToDelete] = useState<string | null>(null);
 
-  // Load journals on mount
-  useEffect(() => {
+  // Load journals on mount and when journals change
+  const loadJournals = () => {
     const allJournals = getJournals();
     setJournals(allJournals);
     
@@ -59,6 +73,10 @@ export function JournalCalendar() {
       const dateKey = date.toISOString().split('T')[0];
       setSelectedDateJournals(byDate[dateKey] || []);
     }
+  };
+  
+  useEffect(() => {
+    loadJournals();
   }, []);
   
   // Update selected date journals when date changes
@@ -68,6 +86,23 @@ export function JournalCalendar() {
       setSelectedDateJournals(journalsByDate[dateKey] || []);
     }
   }, [date, journalsByDate]);
+  
+  const handleDeleteClick = (journalId: string) => {
+    setJournalToDelete(journalId);
+    setDeleteDialogOpen(true);
+  };
+  
+  const confirmDelete = () => {
+    if (journalToDelete) {
+      deleteJournal(journalToDelete);
+      toast.success("Journal entry deleted");
+      setDeleteDialogOpen(false);
+      setJournalToDelete(null);
+      
+      // Reload journals after deletion
+      loadJournals();
+    }
+  };
 
   return (
     <Card className="w-full bg-gradient-to-br from-todo-gray to-todo-dark border-purple-500/10">
@@ -147,10 +182,20 @@ export function JournalCalendar() {
                       <CardHeader className="py-3 px-4">
                         <div className="flex justify-between items-start">
                           <CardTitle className="text-base text-white">{journal.title}</CardTitle>
-                          <Badge className={`${moodColor} flex items-center gap-1`}>
-                            <MoodIcon className="h-3 w-3" />
-                            <span>{journal.mood}</span>
-                          </Badge>
+                          <div className="flex items-center gap-2">
+                            <Badge className={`${moodColor} flex items-center gap-1`}>
+                              <MoodIcon className="h-3 w-3" />
+                              <span>{journal.mood}</span>
+                            </Badge>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6 text-red-400 hover:text-red-300 hover:bg-red-900/20"
+                              onClick={() => handleDeleteClick(journal.id)}
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
                         </div>
                       </CardHeader>
                       <CardContent className="py-0 px-4 pb-3">
@@ -164,6 +209,22 @@ export function JournalCalendar() {
           )}
         </div>
       </CardContent>
+      
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent className="bg-gradient-to-br from-todo-gray to-todo-dark border-purple-500/10">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-gradient-primary">Delete Journal Entry</AlertDialogTitle>
+            <AlertDialogDescription className="text-purple-300/70">
+              Are you sure you want to delete this journal entry?
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-todo-gray hover:bg-todo-gray/80">Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 }

@@ -1,12 +1,24 @@
 
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
-import { getJournals } from "@/lib/journal-utils";
+import { getJournals, deleteJournal } from "@/lib/journal-utils";
 import { JournalEntry } from "@/types/journal";
-import { Smile, Frown, Meh, Heart, Star, Sparkles, CalendarDays } from "lucide-react";
+import { Smile, Frown, Meh, Heart, Star, Sparkles, CalendarDays, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 // Mood icon mapping
 const moodIcons = {
@@ -30,12 +42,29 @@ const moodColors = {
 
 export function JournalList() {
   const [journals, setJournals] = useState<JournalEntry[]>([]);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [journalToDelete, setJournalToDelete] = useState<string | null>(null);
   const { user } = useAuth();
 
   // Load journals on mount
   useEffect(() => {
     setJournals(getJournals());
   }, []);
+  
+  const handleDeleteClick = (journalId: string) => {
+    setJournalToDelete(journalId);
+    setDeleteDialogOpen(true);
+  };
+  
+  const confirmDelete = () => {
+    if (journalToDelete) {
+      deleteJournal(journalToDelete);
+      setJournals(journals.filter(journal => journal.id !== journalToDelete));
+      toast.success("Journal entry deleted");
+      setDeleteDialogOpen(false);
+      setJournalToDelete(null);
+    }
+  };
   
   // If no journals exist
   if (journals.length === 0) {
@@ -86,11 +115,21 @@ export function JournalList() {
                   <CardHeader className="pb-2">
                     <div className="flex justify-between items-start">
                       <CardTitle className="text-lg text-white">{journal.title}</CardTitle>
-                      <Badge variant="outline" 
-                        className={`flex items-center gap-1 ${moodColor}`}>
-                        <MoodIcon className="h-3 w-3" />
-                        <span>{journal.mood}</span>
-                      </Badge>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" 
+                          className={`flex items-center gap-1 ${moodColor}`}>
+                          <MoodIcon className="h-3 w-3" />
+                          <span>{journal.mood}</span>
+                        </Badge>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8 text-red-400 hover:text-red-300 hover:bg-red-900/20"
+                          onClick={() => handleDeleteClick(journal.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
                     <CardDescription className="flex items-center gap-1 text-xs text-purple-300/70">
                       <CalendarDays className="h-3 w-3" /> {date} at {time}
@@ -112,6 +151,22 @@ export function JournalList() {
           </div>
         </ScrollArea>
       </CardContent>
+      
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent className="bg-gradient-to-br from-todo-gray to-todo-dark border-purple-500/10">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-gradient-primary">Delete Journal Entry</AlertDialogTitle>
+            <AlertDialogDescription className="text-purple-300/70">
+              Are you sure you want to delete this journal entry?
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-todo-gray hover:bg-todo-gray/80">Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 }

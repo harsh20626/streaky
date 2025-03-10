@@ -13,7 +13,8 @@ import {
   Trophy,
   Users,
   User,
-  Settings
+  Settings,
+  Zap
 } from "lucide-react";
 import { useTodo } from "@/contexts/TodoContext";
 import { cn } from "@/lib/utils";
@@ -111,6 +112,18 @@ export function AppLayout() {
                   >
                     <MoonStar className="h-5 w-5 text-yellow-500" />
                     {sidebarOpen && <span>Journal</span>}
+                  </button>
+                </li>
+                <li>
+                  <button
+                    onClick={() => handleTabChange("motivation")}
+                    className={cn(
+                      "w-full flex items-center gap-3 px-3 py-2 rounded-md text-sidebar-foreground hover:bg-sidebar-accent transition-colors",
+                      activeTab === "motivation" && "bg-purple-900/40 text-purple-300"
+                    )}
+                  >
+                    <Zap className="h-5 w-5 text-amber-500" />
+                    {sidebarOpen && <span>Motivation</span>}
                   </button>
                 </li>
                 <li>

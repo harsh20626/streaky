@@ -12,13 +12,16 @@ export const getJournals = (): JournalEntry[] => {
 export const saveJournal = (journal: Omit<JournalEntry, 'id' | 'createdAt' | 'updatedAt'>): JournalEntry => {
   const journals = getJournals();
   
+  // Use the current date exactly as is, not adding a day
+  const now = new Date();
+  
   const newJournal: JournalEntry = {
     id: generateId(),
     title: journal.title,
     content: journal.content,
     mood: journal.mood,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    createdAt: now.toISOString(),
+    updatedAt: now.toISOString(),
     tags: journal.tags || [],
     sentimentScore: journal.sentimentScore
   };
@@ -29,6 +32,13 @@ export const saveJournal = (journal: Omit<JournalEntry, 'id' | 'createdAt' | 'up
   analyzeJournalSentiment(newJournal).catch(err => console.error("Error analyzing journal:", err));
   
   return newJournal;
+};
+
+// Delete journal from localStorage
+export const deleteJournal = (journalId: string): void => {
+  const journals = getJournals();
+  const updatedJournals = journals.filter(journal => journal.id !== journalId);
+  localStorage.setItem('journals', JSON.stringify(updatedJournals));
 };
 
 // Get journal stats
