@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useAuth } from "@/contexts/AuthContext";
 import { Separator } from "@/components/ui/separator";
-import { FaGoogle, FaGithub, FaMicrosoft } from "react-icons/fa";
+import { Globe, Github, Mail } from "lucide-react";
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters" }),
@@ -192,7 +192,7 @@ export function SignupForm({ setActiveTab }: SignupFormProps) {
           onClick={handleGoogleLogin}
           disabled={isLoading}
         >
-          <FaGoogle className="mr-2" />
+          <Globe className="mr-2 h-4 w-4" />
           Google
         </Button>
         
@@ -203,7 +203,7 @@ export function SignupForm({ setActiveTab }: SignupFormProps) {
           onClick={handleGithubLogin}
           disabled={isLoading}
         >
-          <FaGithub className="mr-2" />
+          <Github className="mr-2 h-4 w-4" />
           GitHub
         </Button>
         
@@ -214,7 +214,7 @@ export function SignupForm({ setActiveTab }: SignupFormProps) {
           onClick={handleMicrosoftLogin}
           disabled={isLoading}
         >
-          <FaMicrosoft className="mr-2" />
+          <Mail className="mr-2 h-4 w-4" />
           Microsoft
         </Button>
       </div>
