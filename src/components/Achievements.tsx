@@ -4,6 +4,7 @@ import { Trophy, Award, Star, Target, Zap, Flame } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { useTodo } from "@/contexts/TodoContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { useState, useEffect } from "react";
 
 interface Achievement {
@@ -19,13 +20,23 @@ interface Achievement {
 
 export function Achievements() {
   const { todos } = useTodo();
+  const { user } = useAuth();
   const [achievements, setAchievements] = useState<Achievement[]>([]);
 
-  // Calculate achievements based on todos
+  // Calculate achievements based on todos and real user data
   useEffect(() => {
+    if (!user) return;
+    
     const completedTasks = todos.filter(todo => todo.completed).length;
     const totalTasks = todos.length;
-    const streakDays = 5; // This would come from a streak tracking system
+    
+    // Get real streak data from analytics or localStorage
+    const streakData = JSON.parse(localStorage.getItem('streakData') || '{ "currentStreak": 0 }');
+    const streakDays = streakData.currentStreak || 0;
+    
+    // Get journal entries count from localStorage or set to 0
+    const journalEntries = JSON.parse(localStorage.getItem('journalEntries') || '[]');
+    const journalCount = journalEntries.length;
     
     const updatedAchievements: Achievement[] = [
       {
@@ -83,15 +94,15 @@ export function Achievements() {
         name: "Self Reflector",
         description: "Write 10 journal entries",
         icon: <Target className="h-8 w-8 text-green-400" />,
-        progress: 2, // This would come from journal entries count
+        progress: Math.min(journalCount, 10),
         maxProgress: 10,
-        unlocked: false,
+        unlocked: journalCount >= 10,
         category: "advanced"
       }
     ];
     
     setAchievements(updatedAchievements);
-  }, [todos]);
+  }, [todos, user]);
 
   // Group achievements by category
   const beginnerAchievements = achievements.filter(a => a.category === "beginner");
@@ -116,7 +127,7 @@ export function Achievements() {
                 <Badge className="bg-amber-500/80 text-black">Unlocked</Badge>
               )}
             </div>
-            <p className="text-purple-300/70 text-sm">{achievement.description}</p>
+            <p className="text-sm text-purple-300/70">{achievement.description}</p>
             <div className="mt-2">
               <Progress 
                 value={(achievement.progress / achievement.maxProgress) * 100} 
@@ -131,6 +142,21 @@ export function Achievements() {
       </CardContent>
     </Card>
   );
+
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <Card className="w-full max-w-md bg-gradient-to-br from-todo-gray to-todo-dark border-purple-500/10">
+          <CardHeader>
+            <CardTitle className="text-gradient-primary">Your Achievements</CardTitle>
+            <CardDescription className="text-purple-300/70">
+              Log in to view your achievements
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 animate-fade-in">

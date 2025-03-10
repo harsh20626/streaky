@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { LoginForm } from "./LoginForm";
 import { SignupForm } from "./SignupForm";
@@ -11,11 +11,12 @@ export function AuthPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
   
-  // If user is already logged in, redirect them
-  if (user) {
-    navigate('/');
-    return null;
-  }
+  // If user is already logged in, redirect them to home
+  useEffect(() => {
+    if (user) {
+      navigate('/', { replace: true });
+    }
+  }, [user, navigate]);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gradient-to-b from-todo-dark to-black">

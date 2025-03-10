@@ -1,5 +1,7 @@
+
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,6 +12,7 @@ export function LoginForm() {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { login, loginWithGoogle, loginWithGithub, loginWithMicrosoft } = useAuth();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -18,8 +21,21 @@ export function LoginForm() {
     setIsLoading(true);
     try {
       await login(email, password);
+      navigate('/', { replace: true });
     } catch (error) {
       // Error is handled in the auth context
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSocialLogin = async (socialMethod: () => Promise<void>) => {
+    setIsLoading(true);
+    try {
+      await socialMethod();
+      navigate('/', { replace: true });
+    } catch (error) {
       console.error(error);
     } finally {
       setIsLoading(false);
@@ -77,8 +93,9 @@ export function LoginForm() {
         <div className="grid grid-cols-3 gap-2">
           <Button
             variant="outline"
-            onClick={() => loginWithGoogle()}
+            onClick={() => handleSocialLogin(loginWithGoogle)}
             className="bg-todo-gray/50"
+            disabled={isLoading}
           >
             <svg viewBox="0 0 24 24" className="h-5 w-5 mr-2">
               <path
@@ -102,16 +119,18 @@ export function LoginForm() {
           </Button>
           <Button
             variant="outline"
-            onClick={() => loginWithGithub()}
+            onClick={() => handleSocialLogin(loginWithGithub)}
             className="bg-todo-gray/50"
+            disabled={isLoading}
           >
             <Github className="h-5 w-5 mr-2" />
             GitHub
           </Button>
           <Button
             variant="outline"
-            onClick={() => loginWithMicrosoft()}
+            onClick={() => handleSocialLogin(loginWithMicrosoft)}
             className="bg-todo-gray/50"
+            disabled={isLoading}
           >
             <Mail className="h-5 w-5 mr-2" />
             MS
@@ -121,9 +140,13 @@ export function LoginForm() {
       <CardFooter className="flex flex-col items-center justify-center space-y-2">
         <p className="text-sm text-muted-foreground">
           Don't have an account?{" "}
-          <a href="#signup" className="text-todo-purple hover:underline">
+          <Button 
+            variant="link" 
+            className="p-0 h-auto text-todo-purple hover:underline"
+            onClick={() => document.querySelector('[data-tab="signup"]')?.click()}
+          >
             Sign up
-          </a>
+          </Button>
         </p>
       </CardFooter>
     </Card>

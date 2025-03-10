@@ -1,5 +1,7 @@
+
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,6 +13,7 @@ export function SignupForm() {
   const [name, setName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { signup, loginWithGoogle, loginWithGithub, loginWithMicrosoft } = useAuth();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,6 +22,19 @@ export function SignupForm() {
     setIsLoading(true);
     try {
       await signup(email, password, name);
+      navigate('/', { replace: true });
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSocialLogin = async (socialMethod: () => Promise<void>) => {
+    setIsLoading(true);
+    try {
+      await socialMethod();
+      navigate('/', { replace: true });
     } catch (error) {
       console.error(error);
     } finally {
@@ -87,8 +103,9 @@ export function SignupForm() {
         <div className="grid grid-cols-3 gap-2">
           <Button
             variant="outline"
-            onClick={() => loginWithGoogle()}
+            onClick={() => handleSocialLogin(loginWithGoogle)}
             className="bg-todo-gray/50"
+            disabled={isLoading}
           >
             <svg viewBox="0 0 24 24" className="h-5 w-5 mr-2">
               <path
@@ -112,16 +129,18 @@ export function SignupForm() {
           </Button>
           <Button
             variant="outline"
-            onClick={() => loginWithGithub()}
+            onClick={() => handleSocialLogin(loginWithGithub)}
             className="bg-todo-gray/50"
+            disabled={isLoading}
           >
             <Github className="h-5 w-5 mr-2" />
             GitHub
           </Button>
           <Button
             variant="outline"
-            onClick={() => loginWithMicrosoft()}
+            onClick={() => handleSocialLogin(loginWithMicrosoft)}
             className="bg-todo-gray/50"
+            disabled={isLoading}
           >
             <Mail className="h-5 w-5 mr-2" />
             MS
@@ -131,9 +150,13 @@ export function SignupForm() {
       <CardFooter className="flex flex-col items-center justify-center space-y-2">
         <p className="text-sm text-muted-foreground">
           Already have an account?{" "}
-          <a href="#login" className="text-todo-purple hover:underline">
+          <Button 
+            variant="link" 
+            className="p-0 h-auto text-todo-purple hover:underline"
+            onClick={() => document.querySelector('[data-tab="login"]')?.click()}
+          >
             Log in
-          </a>
+          </Button>
         </p>
       </CardFooter>
     </Card>
