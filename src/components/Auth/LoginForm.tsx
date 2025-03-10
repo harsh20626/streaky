@@ -42,6 +42,14 @@ export function LoginForm() {
     }
   };
 
+  const handleSignupClick = () => {
+    // Find the signup tab button and simulate a click
+    const signupTab = document.querySelector('[data-tab="signup"]');
+    if (signupTab && signupTab instanceof HTMLElement) {
+      signupTab.click();
+    }
+  };
+
   return (
     <Card className="w-full max-w-md mx-auto bg-gradient-to-br from-todo-gray to-todo-dark border-purple-500/10">
       <CardHeader>
@@ -143,7 +151,7 @@ export function LoginForm() {
           <Button 
             variant="link" 
             className="p-0 h-auto text-todo-purple hover:underline"
-            onClick={() => document.querySelector('[data-tab="signup"]')?.click()}
+            onClick={handleSignupClick}
           >
             Sign up
           </Button>

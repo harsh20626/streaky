@@ -31,6 +31,7 @@ export function AuthPage() {
             variant={activeTab === 'login' ? "default" : "outline"}
             className={`flex-1 rounded-none py-6 ${activeTab === 'login' ? 'bg-todo-purple hover:bg-todo-purple/90' : 'bg-todo-gray/50'}`}
             onClick={() => setActiveTab('login')}
+            data-tab="login"
           >
             Login
           </Button>
@@ -38,6 +39,7 @@ export function AuthPage() {
             variant={activeTab === 'signup' ? "default" : "outline"}
             className={`flex-1 rounded-none py-6 ${activeTab === 'signup' ? 'bg-todo-purple hover:bg-todo-purple/90' : 'bg-todo-gray/50'}`}
             onClick={() => setActiveTab('signup')}
+            data-tab="signup"
           >
             Sign Up
           </Button>
