@@ -14,7 +14,8 @@ import {
   Users,
   User,
   Settings,
-  Zap
+  Zap,
+  ListTodo
 } from "lucide-react";
 import { useTodo } from "@/contexts/TodoContext";
 import { cn } from "@/lib/utils";
@@ -88,6 +89,18 @@ export function AppLayout() {
                   >
                     <CheckCircle2 className="h-5 w-5 text-todo-purple" />
                     {sidebarOpen && <span>Todo List</span>}
+                  </button>
+                </li>
+                <li>
+                  <button
+                    onClick={() => handleTabChange("essentials")}
+                    className={cn(
+                      "w-full flex items-center gap-3 px-3 py-2 rounded-md text-sidebar-foreground hover:bg-sidebar-accent transition-colors",
+                      activeTab === "essentials" && "bg-purple-900/40 text-purple-300"
+                    )}
+                  >
+                    <ListTodo className="h-5 w-5 text-cyan-400" />
+                    {sidebarOpen && <span>Daily Essentials</span>}
                   </button>
                 </li>
                 <li>

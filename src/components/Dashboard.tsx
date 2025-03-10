@@ -7,6 +7,7 @@ import { PomodoroTimer } from "@/components/PomodoroTimer";
 import { Journal } from "@/components/Journal";
 import { Achievements } from "@/components/Achievements";
 import { Motivation } from "@/components/Motivation";
+import { DailyEssentialsTable } from "@/components/DailyEssentials/DailyEssentialsTable";
 import { useAuth } from "@/contexts/AuthContext";
 import { useState, useEffect } from "react";
 
@@ -68,6 +69,10 @@ export function Dashboard({ activeTab = "today", onTabChange }: DashboardProps) 
       >
         <TabsContent value="today" className="focus-visible:outline-none">
           <TodoList />
+        </TabsContent>
+        
+        <TabsContent value="essentials" className="focus-visible:outline-none">
+          <DailyEssentialsTable />
         </TabsContent>
         
         <TabsContent value="pomodoro" className="focus-visible:outline-none">

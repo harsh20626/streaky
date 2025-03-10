@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -7,10 +7,41 @@ import { useToast } from "@/hooks/use-toast";
 import { Moon, Sun, Monitor } from "lucide-react";
 
 export function ThemeSettings() {
-  const [theme, setTheme] = useState("dark");
+  const [theme, setTheme] = useState(() => {
+    // Get theme from localStorage or default to dark
+    return localStorage.getItem("theme") || "dark";
+  });
   const { toast } = useToast();
 
+  // Apply theme when component mounts and when theme changes
+  useEffect(() => {
+    applyTheme(theme);
+  }, [theme]);
+
+  const applyTheme = (selectedTheme: string) => {
+    const root = window.document.documentElement;
+    
+    if (selectedTheme === "system") {
+      // Check system preference
+      const systemPreference = window.matchMedia("(prefers-color-scheme: dark)").matches ? 
+        "dark" : "light";
+      
+      root.classList.remove("light", "dark");
+      root.classList.add(systemPreference);
+    } else {
+      // Apply specific theme
+      root.classList.remove("light", "dark");
+      root.classList.add(selectedTheme);
+    }
+  };
+
   const handleSave = () => {
+    // Save to localStorage
+    localStorage.setItem("theme", theme);
+    
+    // Apply the theme
+    applyTheme(theme);
+    
     toast({
       title: "Theme Settings Saved",
       description: `Theme has been updated to ${theme} mode.`,

@@ -1,219 +1,231 @@
+import React, { createContext, useState, useContext, useEffect } from 'react';
+import { User } from '@/types/todo';
 
-import { createContext, useContext, useState, useEffect } from "react";
-import { toast } from "sonner";
-
-type User = {
-  id: string;
-  email: string;
-  name: string;
-  photoUrl?: string;
-  provider?: string;
-}
-
-type AuthContextType = {
+interface AuthContextProps {
   user: User | null;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  loginWithGoogle: () => Promise<void>;
-  loginWithGithub: () => Promise<void>;
-  loginWithMicrosoft: () => Promise<void>;
-  signup: (email: string, password: string, name: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<User | null>;
+  signup: (email: string, password: string, name: string) => Promise<User | null>;
   logout: () => void;
-  updateProfile: (data: Partial<User>) => void;
+  updateProfile: (updateData: Partial<User>) => void;
+  loginWithGoogle: () => Promise<User | null>;
+  loginWithGithub: () => Promise<User | null>;
+  loginWithMicrosoft: () => Promise<User | null>;
+}
+
+const AuthContext = createContext<AuthContextProps | undefined>(undefined);
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
 };
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  // Check for existing user on load
+  const [isLoading, setIsLoading] = useState(false);
+  
+  // Initialize user from localStorage on mount
   useEffect(() => {
-    const savedUser = localStorage.getItem('user');
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
     }
-    setIsLoading(false);
   }, []);
 
-  // Mock login function (in a real app, this would call an API)
+  // Login function
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Simple validation (in a real app, this would be server-side)
-      if (!email.includes('@') || password.length < 6) {
-        throw new Error('Invalid credentials');
-      }
-      
-      const mockUser: User = {
-        id: Math.random().toString(36).substring(2, 9),
-        email,
-        name: email.split('@')[0],
+      // Demo user for login
+      const demoUser: User = {
+        id: '1',
+        name: 'Demo User',
+        email: email,
+        profilePicture: '/placeholder.svg',
+        createdAt: new Date().toISOString(),
+        bio: 'I love using Streaky to stay productive!',
+        settings: {
+          theme: 'dark',
+          notifications: true,
+          privacy: 'public'
+        }
       };
       
-      setUser(mockUser);
-      localStorage.setItem('user', JSON.stringify(mockUser));
-      toast.success('Logged in successfully!');
-    } catch (error) {
-      toast.error('Login failed: ' + (error instanceof Error ? error.message : 'Unknown error'));
-      throw error;
-    } finally {
+      // Save user to localStorage
+      localStorage.setItem('user', JSON.stringify(demoUser));
+      setUser(demoUser);
       setIsLoading(false);
+      return demoUser;
+    } catch (error) {
+      setIsLoading(false);
+      throw error;
     }
   };
 
-  // Mock social login functions
-  const loginWithGoogle = async () => {
-    setIsLoading(true);
-    try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      const mockUser: User = {
-        id: Math.random().toString(36).substring(2, 9),
-        email: `user${Math.floor(Math.random() * 1000)}@gmail.com`,
-        name: `Google User ${Math.floor(Math.random() * 100)}`,
-        photoUrl: 'https://placehold.co/100x100',
-        provider: 'google'
-      };
-      setUser(mockUser);
-      localStorage.setItem('user', JSON.stringify(mockUser));
-      toast.success('Logged in with Google!');
-    } catch (error) {
-      toast.error('Google login failed');
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const loginWithGithub = async () => {
-    setIsLoading(true);
-    try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      const mockUser: User = {
-        id: Math.random().toString(36).substring(2, 9),
-        email: `user${Math.floor(Math.random() * 1000)}@github.com`,
-        name: `GitHub User ${Math.floor(Math.random() * 100)}`,
-        photoUrl: 'https://placehold.co/100x100',
-        provider: 'github'
-      };
-      setUser(mockUser);
-      localStorage.setItem('user', JSON.stringify(mockUser));
-      toast.success('Logged in with GitHub!');
-    } catch (error) {
-      toast.error('GitHub login failed');
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const loginWithMicrosoft = async () => {
-    setIsLoading(true);
-    try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      const mockUser: User = {
-        id: Math.random().toString(36).substring(2, 9),
-        email: `user${Math.floor(Math.random() * 1000)}@outlook.com`,
-        name: `Microsoft User ${Math.floor(Math.random() * 100)}`,
-        photoUrl: 'https://placehold.co/100x100',
-        provider: 'microsoft'
-      };
-      setUser(mockUser);
-      localStorage.setItem('user', JSON.stringify(mockUser));
-      toast.success('Logged in with Microsoft!');
-    } catch (error) {
-      toast.error('Microsoft login failed');
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Mock signup function
+  // Signup function
   const signup = async (email: string, password: string, name: string) => {
     setIsLoading(true);
     try {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Simple validation
-      if (!email.includes('@')) {
-        throw new Error('Invalid email');
-      }
-      
-      if (password.length < 6) {
-        throw new Error('Password must be at least 6 characters');
-      }
-      
-      if (!name) {
-        throw new Error('Name is required');
-      }
-      
-      const mockUser: User = {
-        id: Math.random().toString(36).substring(2, 9),
-        email,
-        name,
+      // Create a new user
+      const newUser: User = {
+        id: Date.now().toString(),
+        name: name,
+        email: email,
+        profilePicture: '/placeholder.svg',
+        createdAt: new Date().toISOString(),
+        bio: '',
+        settings: {
+          theme: 'dark',
+          notifications: true,
+          privacy: 'public'
+        }
       };
       
-      setUser(mockUser);
-      localStorage.setItem('user', JSON.stringify(mockUser));
-      toast.success('Account created successfully!');
-    } catch (error) {
-      toast.error('Signup failed: ' + (error instanceof Error ? error.message : 'Unknown error'));
-      throw error;
-    } finally {
+      // Save user to localStorage
+      localStorage.setItem('user', JSON.stringify(newUser));
+      setUser(newUser);
       setIsLoading(false);
+      return newUser;
+    } catch (error) {
+      setIsLoading(false);
+      throw error;
     }
   };
 
   // Logout function
   const logout = () => {
-    setUser(null);
     localStorage.removeItem('user');
-    toast.success('Logged out successfully');
+    setUser(null);
   };
 
-  // Update profile
-  const updateProfile = (data: Partial<User>) => {
-    if (!user) return;
-    
-    const updatedUser = {
-      ...user,
-      ...data
-    };
-    
-    setUser(updatedUser);
-    localStorage.setItem('user', JSON.stringify(updatedUser));
-    toast.success('Profile updated successfully');
+  // Update user profile
+  const updateProfile = (updateData: Partial<User>) => {
+    if (user) {
+      const updatedUser = { ...user, ...updateData };
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      setUser(updatedUser);
+    }
+  };
+
+  // Social login functions
+  const loginWithGoogle = async () => {
+    setIsLoading(true);
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Demo Google user
+      const googleUser: User = {
+        id: 'google-1',
+        name: 'Google User',
+        email: 'google@example.com',
+        profilePicture: '/placeholder.svg',
+        createdAt: new Date().toISOString(),
+        bio: 'Joined via Google',
+        settings: {
+          theme: 'dark',
+          notifications: true,
+          privacy: 'public'
+        }
+      };
+      
+      localStorage.setItem('user', JSON.stringify(googleUser));
+      setUser(googleUser);
+      setIsLoading(false);
+      return googleUser;
+    } catch (error) {
+      setIsLoading(false);
+      throw error;
+    }
+  };
+
+  const loginWithGithub = async () => {
+    setIsLoading(true);
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Demo GitHub user
+      const githubUser: User = {
+        id: 'github-1',
+        name: 'GitHub User',
+        email: 'github@example.com',
+        profilePicture: '/placeholder.svg',
+        createdAt: new Date().toISOString(),
+        bio: 'Joined via GitHub',
+        settings: {
+          theme: 'dark',
+          notifications: true,
+          privacy: 'public'
+        }
+      };
+      
+      localStorage.setItem('user', JSON.stringify(githubUser));
+      setUser(githubUser);
+      setIsLoading(false);
+      return githubUser;
+    } catch (error) {
+      setIsLoading(false);
+      throw error;
+    }
+  };
+
+  const loginWithMicrosoft = async () => {
+    setIsLoading(true);
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Demo Microsoft user
+      const microsoftUser: User = {
+        id: 'microsoft-1',
+        name: 'Microsoft User',
+        email: 'microsoft@example.com',
+        profilePicture: '/placeholder.svg',
+        createdAt: new Date().toISOString(),
+        bio: 'Joined via Microsoft',
+        settings: {
+          theme: 'dark',
+          notifications: true,
+          privacy: 'public'
+        }
+      };
+      
+      localStorage.setItem('user', JSON.stringify(microsoftUser));
+      setUser(microsoftUser);
+      setIsLoading(false);
+      return microsoftUser;
+    } catch (error) {
+      setIsLoading(false);
+      throw error;
+    }
+  };
+
+  // Value to be provided by the context
+  const value = {
+    user,
+    isLoading,
+    login,
+    logout,
+    signup,
+    updateProfile,
+    loginWithGoogle,
+    loginWithGithub,
+    loginWithMicrosoft
   };
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        isLoading,
-        login,
-        loginWithGoogle,
-        loginWithGithub,
-        loginWithMicrosoft,
-        signup,
-        logout,
-        updateProfile
-      }}
-    >
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
-}
-
-export function useAuth() {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
-  return context;
-}
+};
