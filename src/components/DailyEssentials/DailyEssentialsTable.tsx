@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -14,7 +15,7 @@ interface EssentialTask {
   statuses: Record<string, string>;
 }
 
-const generateDates = (daysBack = 2, daysForward = 4): string[] => {
+const generateDates = (daysBack = 3, daysForward = 3): string[] => {
   const dates: string[] = [];
   const today = new Date();
   
@@ -51,7 +52,9 @@ export function DailyEssentialsTable() {
   const [dates, setDates] = useState<string[]>(generateDates());
   const { toast } = useToast();
   
+  // Update dates at midnight (for date changing)
   useEffect(() => {
+    // Initial load of tasks
     try {
       const savedTasks = localStorage.getItem("dailyEssentialTasks");
       if (savedTasks) {
@@ -60,8 +63,48 @@ export function DailyEssentialsTable() {
     } catch (error) {
       console.error("Error loading tasks:", error);
     }
-  }, []);
+    
+    // Set up timer to update dates at midnight
+    const checkForDateChange = () => {
+      const newDates = generateDates();
+      const currentToday = new Date().toISOString().split('T')[0];
+      const lastDate = dates[dates.indexOf(currentToday) + 1];
+      
+      // If the day has changed, update our dates and add new status slots
+      if (!dates.includes(currentToday)) {
+        setDates(newDates);
+        
+        // Update all tasks to include the new dates
+        setTasks(prevTasks => {
+          return prevTasks.map(task => {
+            const updatedStatuses = { ...task.statuses };
+            
+            // Add empty status slots for any new dates
+            newDates.forEach(date => {
+              if (!updatedStatuses[date]) {
+                updatedStatuses[date] = "";
+              }
+            });
+            
+            return {
+              ...task,
+              statuses: updatedStatuses
+            };
+          });
+        });
+      }
+    };
+    
+    // Check immediately
+    checkForDateChange();
+    
+    // Set up interval to check for date change - check every hour
+    const interval = setInterval(checkForDateChange, 1000 * 60 * 60);
+    
+    return () => clearInterval(interval);
+  }, [dates]);
   
+  // Save tasks to localStorage whenever they change
   useEffect(() => {
     try {
       localStorage.setItem("dailyEssentialTasks", JSON.stringify(tasks));
@@ -146,80 +189,85 @@ export function DailyEssentialsTable() {
         </Button>
       </div>
       
-      <div className="border rounded-md">
-        <ScrollArea className="h-[calc(100vh-320px)]" style={{ overflow: 'hidden' }}>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-12">No.</TableHead>
-                <TableHead>Task</TableHead>
-                {dates.map((date) => (
-                  <TableHead 
-                    key={date} 
-                    className={cn(
-                      "text-center min-w-[100px]",
-                      isToday(date) && "bg-todo-purple/30"
-                    )}
-                  >
-                    {formatDateDisplay(date)}
-                    {isToday(date) && <span className="ml-1">(Today)</span>}
-                  </TableHead>
-                ))}
-                <TableHead className="w-12 text-center">Delete</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {tasks.length === 0 ? (
+      <div className="border rounded-md overflow-hidden">
+        <ScrollArea 
+          className="h-[calc(100vh-320px)]" 
+          orientation="horizontal"
+        >
+          <div className="min-w-max">
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={dates.length + 3} className="text-center py-6 text-muted-foreground">
-                    No daily essential tasks added yet. Add your first task above.
-                  </TableCell>
+                  <TableHead className="w-12 sticky left-0 z-20 bg-todo-dark">No.</TableHead>
+                  <TableHead className="sticky left-12 z-20 bg-todo-dark">Task</TableHead>
+                  {dates.map((date) => (
+                    <TableHead 
+                      key={date} 
+                      className={cn(
+                        "text-center min-w-[100px]",
+                        isToday(date) && "bg-todo-purple/30"
+                      )}
+                    >
+                      {formatDateDisplay(date)}
+                      {isToday(date) && <span className="ml-1">(Today)</span>}
+                    </TableHead>
+                  ))}
+                  <TableHead className="w-12 text-center">Delete</TableHead>
                 </TableRow>
-              ) : (
-                tasks.map((task, index) => (
-                  <TableRow key={task.id}>
-                    <TableCell className="font-medium">{index + 1}</TableCell>
-                    <TableCell>{task.name}</TableCell>
-                    {dates.map((date) => (
-                      <TableCell key={`${task.id}-${date}`} className="text-center">
-                        <Select
-                          value={task.statuses[date] || "not-set"}
-                          onValueChange={(value) => updateStatus(task.id, date, value)}
-                        >
-                          <SelectTrigger className={cn(
-                            "h-8 w-full",
-                            task.statuses[date] === "Done" && "bg-green-900/30 text-green-300",
-                            task.statuses[date] === "Not Done" && "bg-red-900/30 text-red-300",
-                            task.statuses[date] === "Partial" && "bg-yellow-900/30 text-yellow-300",
-                            task.statuses[date] === "Skipped" && "bg-gray-900/30 text-gray-300",
-                          )}>
-                            <SelectValue placeholder="Status" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {statusOptions.map(option => (
-                              <SelectItem key={option.value} value={option.value}>
-                                {option.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </TableCell>
-                    ))}
-                    <TableCell className="text-center">
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        onClick={() => removeTask(task.id)}
-                        className="text-red-400 bg-red-900/10"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+              </TableHeader>
+              <TableBody>
+                {tasks.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={dates.length + 3} className="text-center py-6 text-muted-foreground">
+                      No daily essential tasks added yet. Add your first task above.
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                ) : (
+                  tasks.map((task, index) => (
+                    <TableRow key={task.id}>
+                      <TableCell className="font-medium sticky left-0 z-10 bg-todo-dark">{index + 1}</TableCell>
+                      <TableCell className="sticky left-12 z-10 bg-todo-dark">{task.name}</TableCell>
+                      {dates.map((date) => (
+                        <TableCell key={`${task.id}-${date}`} className="text-center">
+                          <Select
+                            value={task.statuses[date] || "not-set"}
+                            onValueChange={(value) => updateStatus(task.id, date, value)}
+                          >
+                            <SelectTrigger className={cn(
+                              "h-8 w-full",
+                              task.statuses[date] === "Done" && "bg-green-900/30 text-green-300",
+                              task.statuses[date] === "Not Done" && "bg-red-900/30 text-red-300",
+                              task.statuses[date] === "Partial" && "bg-yellow-900/30 text-yellow-300",
+                              task.statuses[date] === "Skipped" && "bg-gray-900/30 text-gray-300",
+                            )}>
+                              <SelectValue placeholder="Status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {statusOptions.map(option => (
+                                <SelectItem key={option.value} value={option.value}>
+                                  {option.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </TableCell>
+                      ))}
+                      <TableCell className="text-center">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          onClick={() => removeTask(task.id)}
+                          className="text-red-400 bg-red-900/10"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </ScrollArea>
       </div>
       

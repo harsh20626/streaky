@@ -71,6 +71,24 @@
     display: none;
   }
 
+  .scrollbar-transparent::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  
+  .scrollbar-transparent::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  .scrollbar-transparent::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+  }
+  
+  .scrollbar-transparent::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+  }
+
   .glass-card {
     @apply bg-todo-gray/50 backdrop-blur-sm border border-white/10 shadow-lg;
   }
