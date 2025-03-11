@@ -4,7 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { PlusIcon, Trash2, Save } from "lucide-react";
+import { PlusIcon, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -137,6 +137,12 @@ export function DailyEssentialsTable() {
     { value: "Skipped", label: "Skipped" }
   ];
   
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      addTask();
+    }
+  };
+  
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
@@ -144,15 +150,16 @@ export function DailyEssentialsTable() {
           placeholder="Add a new daily essential task..."
           value={newTaskName}
           onChange={(e) => setNewTaskName(e.target.value)}
+          onKeyDown={handleKeyDown}
           className="bg-todo-gray/50"
         />
-        <Button onClick={addTask}>
+        <Button onClick={addTask} type="button">
           <PlusIcon className="h-5 w-5" />
         </Button>
       </div>
       
       <div className="border rounded-md overflow-hidden">
-        <ScrollArea className="h-[calc(100vh-320px)]" scrollHideDelay={0}>
+        <ScrollArea className="h-[calc(100vh-320px)]">
           <Table>
             <TableHeader>
               <TableRow>
@@ -170,7 +177,7 @@ export function DailyEssentialsTable() {
                     {isToday(date) && <span className="ml-1">(Today)</span>}
                   </TableHead>
                 ))}
-                <TableHead className="w-12"></TableHead>
+                <TableHead className="w-12 text-center">Delete</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -210,9 +217,14 @@ export function DailyEssentialsTable() {
                         </Select>
                       </TableCell>
                     ))}
-                    <TableCell>
-                      <Button variant="ghost" size="icon" onClick={() => removeTask(task.id)}>
-                        <Trash2 className="h-4 w-4 text-red-400" />
+                    <TableCell className="text-center">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={() => removeTask(task.id)}
+                        className="text-red-400 hover:text-red-300 hover:bg-red-900/20"
+                      >
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -233,7 +245,6 @@ export function DailyEssentialsTable() {
             });
           }}
         >
-          <Save className="mr-2 h-4 w-4" />
           Save Progress
         </Button>
       </div>

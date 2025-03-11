@@ -18,12 +18,16 @@ const defaultSettings: PomodoroSettings = {
   shortBreakDuration: 5,
   longBreakDuration: 15,
   longBreakInterval: 4,
+  autoStartBreaks: true,
+  autoStartPomodoros: false,
+  notifications: true,
 };
 
 const defaultState: PomodoroState = {
   status: 'idle',
   timeRemaining: defaultSettings.workDuration * 60,
   currentSession: 1,
+  totalSessions: 0,
   isActive: false,
   selectedTodoId: null,
 };
@@ -32,16 +36,29 @@ const PomodoroContext = createContext<PomodoroContextType | undefined>(undefined
 
 export function PomodoroProvider({ children }: { children: React.ReactNode }) {
   const [settings, setSettings] = useState<PomodoroSettings>(() => {
-    const savedSettings = localStorage.getItem('pomodoroSettings');
-    return savedSettings ? JSON.parse(savedSettings) : defaultSettings;
+    try {
+      const savedSettings = localStorage.getItem('pomodoroSettings');
+      return savedSettings ? JSON.parse(savedSettings) : defaultSettings;
+    } catch (error) {
+      console.error('Error loading pomodoro settings:', error);
+      return defaultSettings;
+    }
   });
   
   const [state, setState] = useState<PomodoroState>(() => {
-    const savedState = localStorage.getItem('pomodoroState');
-    return savedState ? JSON.parse(savedState) : {
-      ...defaultState,
-      timeRemaining: settings.workDuration * 60
-    };
+    try {
+      const savedState = localStorage.getItem('pomodoroState');
+      return savedState ? JSON.parse(savedState) : {
+        ...defaultState,
+        timeRemaining: settings.workDuration * 60
+      };
+    } catch (error) {
+      console.error('Error loading pomodoro state:', error);
+      return {
+        ...defaultState,
+        timeRemaining: settings.workDuration * 60
+      };
+    }
   });
 
   // Save settings to localStorage when they change
@@ -87,10 +104,12 @@ export function PomodoroProvider({ children }: { children: React.ReactNode }) {
     let nextStatus: PomodoroStatus;
     let nextTimeRemaining: number;
     let nextSession = state.currentSession;
+    let nextTotalSessions = state.totalSessions;
     
     // Determine next status based on current status
     if (state.status === 'work') {
       // After work, determine if it's time for a long break or short break
+      nextTotalSessions = state.totalSessions + 1;
       if (state.currentSession % settings.longBreakInterval === 0) {
         nextStatus = 'longBreak';
         nextTimeRemaining = settings.longBreakDuration * 60;
@@ -113,7 +132,8 @@ export function PomodoroProvider({ children }: { children: React.ReactNode }) {
       status: nextStatus,
       timeRemaining: nextTimeRemaining,
       currentSession: nextSession,
-      isActive: true // Auto-start the next session
+      totalSessions: nextTotalSessions,
+      isActive: settings.autoStartBreaks, // Auto-start based on settings
     });
   };
 

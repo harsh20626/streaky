@@ -56,6 +56,8 @@ export interface PomodoroState {
   timeRemaining: number;
   currentSession: number;
   totalSessions: number;
+  isActive: boolean;
+  selectedTodoId: string | null;
 }
 
 export type PomodoroStatus = 'work' | 'shortBreak' | 'longBreak' | 'idle';

@@ -87,7 +87,7 @@ export function AppLayout() {
                       activeTab === "today" && "bg-purple-900/40 text-purple-300"
                     )}
                   >
-                    <CheckCircle2 className="h-5 w-5 text-todo-purple" />
+                    <CheckCircle2 className={cn("h-5 w-5 text-todo-purple", !sidebarOpen && "mx-auto")} />
                     {sidebarOpen && <span>Todo List</span>}
                   </button>
                 </li>
@@ -99,7 +99,7 @@ export function AppLayout() {
                       activeTab === "essentials" && "bg-purple-900/40 text-purple-300"
                     )}
                   >
-                    <ListTodo className="h-5 w-5 text-cyan-400" />
+                    <ListTodo className={cn("h-5 w-5 text-cyan-400", !sidebarOpen && "mx-auto")} />
                     {sidebarOpen && <span>Daily Essentials</span>}
                   </button>
                 </li>
@@ -111,7 +111,7 @@ export function AppLayout() {
                       activeTab === "pomodoro" && "bg-purple-900/40 text-purple-300"
                     )}
                   >
-                    <Timer className="h-5 w-5 text-orange-500" />
+                    <Timer className={cn("h-5 w-5 text-orange-500", !sidebarOpen && "mx-auto")} />
                     {sidebarOpen && <span>Focus Timer</span>}
                   </button>
                 </li>
@@ -123,7 +123,7 @@ export function AppLayout() {
                       activeTab === "journal" && "bg-purple-900/40 text-purple-300"
                     )}
                   >
-                    <MoonStar className="h-5 w-5 text-yellow-500" />
+                    <MoonStar className={cn("h-5 w-5 text-yellow-500", !sidebarOpen && "mx-auto")} />
                     {sidebarOpen && <span>Journal</span>}
                   </button>
                 </li>
@@ -135,7 +135,7 @@ export function AppLayout() {
                       activeTab === "motivation" && "bg-purple-900/40 text-purple-300"
                     )}
                   >
-                    <Zap className="h-5 w-5 text-amber-500" />
+                    <Zap className={cn("h-5 w-5 text-amber-500", !sidebarOpen && "mx-auto")} />
                     {sidebarOpen && <span>Motivation</span>}
                   </button>
                 </li>
@@ -147,7 +147,7 @@ export function AppLayout() {
                       activeTab === "analytics" && "bg-purple-900/40 text-purple-300"
                     )}
                   >
-                    <LayoutDashboard className="h-5 w-5 text-blue-500" />
+                    <LayoutDashboard className={cn("h-5 w-5 text-blue-500", !sidebarOpen && "mx-auto")} />
                     {sidebarOpen && <span>Analytics</span>}
                   </button>
                 </li>
@@ -159,7 +159,7 @@ export function AppLayout() {
                       activeTab === "history" && "bg-purple-900/40 text-purple-300"
                     )}
                   >
-                    <History className="h-5 w-5 text-green-500" />
+                    <History className={cn("h-5 w-5 text-green-500", !sidebarOpen && "mx-auto")} />
                     {sidebarOpen && <span>History</span>}
                   </button>
                 </li>
@@ -176,7 +176,7 @@ export function AppLayout() {
                     onClick={() => handleNavigate("/community")}
                     className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
                   >
-                    <Users className="h-5 w-5 text-indigo-400" />
+                    <Users className={cn("h-5 w-5 text-indigo-400", !sidebarOpen && "mx-auto")} />
                     {sidebarOpen && <span>Community</span>}
                   </button>
                 </li>
@@ -188,7 +188,7 @@ export function AppLayout() {
                       activeTab === "achievements" && "bg-purple-900/40 text-purple-300"
                     )}
                   >
-                    <Trophy className="h-5 w-5 text-amber-400" />
+                    <Trophy className={cn("h-5 w-5 text-amber-400", !sidebarOpen && "mx-auto")} />
                     {sidebarOpen && <span>Achievements</span>}
                   </button>
                 </li>
@@ -203,7 +203,7 @@ export function AppLayout() {
                   onClick={() => handleNavigate("/profile")}
                   className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
                 >
-                  <User className="h-5 w-5 text-purple-300" />
+                  <User className={cn("h-5 w-5 text-purple-300", !sidebarOpen && "mx-auto")} />
                   {sidebarOpen && <span>Profile</span>}
                 </button>
               </li>
@@ -212,7 +212,7 @@ export function AppLayout() {
                   onClick={() => handleNavigate("/auth")}
                   className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
                 >
-                  <Settings className="h-5 w-5 text-gray-400" />
+                  <Settings className={cn("h-5 w-5 text-gray-400", !sidebarOpen && "mx-auto")} />
                   {sidebarOpen && <span>Login / Settings</span>}
                 </button>
               </li>
