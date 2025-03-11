@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -9,29 +8,24 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
-// Define interface for a daily essential task
 interface EssentialTask {
   id: string;
   name: string;
   statuses: Record<string, string>;
 }
 
-// Helper to generate dates for the last week and next few days
 const generateDates = (daysBack = 2, daysForward = 4): string[] => {
   const dates: string[] = [];
   const today = new Date();
   
-  // Add past days
   for (let i = daysBack; i > 0; i--) {
     const date = new Date(today);
     date.setDate(today.getDate() - i);
     dates.push(date.toISOString().split('T')[0]);
   }
   
-  // Add today
   dates.push(today.toISOString().split('T')[0]);
   
-  // Add future days
   for (let i = 1; i <= daysForward; i++) {
     const date = new Date(today);
     date.setDate(today.getDate() + i);
@@ -41,13 +35,11 @@ const generateDates = (daysBack = 2, daysForward = 4): string[] => {
   return dates;
 };
 
-// Format date for display (e.g., "10/03")
 const formatDateDisplay = (dateString: string): string => {
   const date = new Date(dateString);
   return `${date.getDate()}/${date.getMonth() + 1}`;
 };
 
-// Determine if a date is today
 const isToday = (dateString: string): boolean => {
   const today = new Date().toISOString().split('T')[0];
   return dateString === today;
@@ -59,7 +51,6 @@ export function DailyEssentialsTable() {
   const [dates, setDates] = useState<string[]>(generateDates());
   const { toast } = useToast();
   
-  // Load tasks from localStorage on component mount
   useEffect(() => {
     try {
       const savedTasks = localStorage.getItem("dailyEssentialTasks");
@@ -71,7 +62,6 @@ export function DailyEssentialsTable() {
     }
   }, []);
   
-  // Save tasks to localStorage whenever they change
   useEffect(() => {
     try {
       localStorage.setItem("dailyEssentialTasks", JSON.stringify(tasks));
@@ -83,7 +73,6 @@ export function DailyEssentialsTable() {
   const addTask = () => {
     if (!newTaskName.trim()) return;
     
-    // Create a new task with empty statuses for all dates
     const statuses: Record<string, string> = {};
     dates.forEach(date => {
       statuses[date] = "";
@@ -128,7 +117,6 @@ export function DailyEssentialsTable() {
     }));
   };
   
-  // Status options for the dropdown
   const statusOptions = [
     { value: "not-set", label: "Not set" },
     { value: "Done", label: "Done" },
@@ -222,7 +210,7 @@ export function DailyEssentialsTable() {
                         variant="ghost" 
                         size="icon" 
                         onClick={() => removeTask(task.id)}
-                        className="text-red-400 hover:text-red-300 hover:bg-red-900/20"
+                        className="text-red-400 bg-red-900/10"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
