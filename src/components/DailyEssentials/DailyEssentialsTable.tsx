@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { PlusIcon, Trash2, Save } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 // Define interface for a daily essential task
 interface EssentialTask {
@@ -60,15 +61,23 @@ export function DailyEssentialsTable() {
   
   // Load tasks from localStorage on component mount
   useEffect(() => {
-    const savedTasks = localStorage.getItem("dailyEssentialTasks");
-    if (savedTasks) {
-      setTasks(JSON.parse(savedTasks));
+    try {
+      const savedTasks = localStorage.getItem("dailyEssentialTasks");
+      if (savedTasks) {
+        setTasks(JSON.parse(savedTasks));
+      }
+    } catch (error) {
+      console.error("Error loading tasks:", error);
     }
   }, []);
   
   // Save tasks to localStorage whenever they change
   useEffect(() => {
-    localStorage.setItem("dailyEssentialTasks", JSON.stringify(tasks));
+    try {
+      localStorage.setItem("dailyEssentialTasks", JSON.stringify(tasks));
+    } catch (error) {
+      console.error("Error saving tasks:", error);
+    }
   }, [tasks]);
   
   const addTask = () => {
@@ -121,7 +130,7 @@ export function DailyEssentialsTable() {
   
   // Status options for the dropdown
   const statusOptions = [
-    { value: "", label: "Not set" },
+    { value: "not-set", label: "Not set" },
     { value: "Done", label: "Done" },
     { value: "Not Done", label: "Not Done" },
     { value: "Partial", label: "Partial" },
@@ -142,74 +151,76 @@ export function DailyEssentialsTable() {
         </Button>
       </div>
       
-      <div className="border rounded-md overflow-auto">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-12">No.</TableHead>
-              <TableHead>Task</TableHead>
-              {dates.map((date) => (
-                <TableHead 
-                  key={date} 
-                  className={cn(
-                    "text-center min-w-[100px]",
-                    isToday(date) && "bg-todo-purple/30"
-                  )}
-                >
-                  {formatDateDisplay(date)}
-                  {isToday(date) && <span className="ml-1">(Today)</span>}
-                </TableHead>
-              ))}
-              <TableHead className="w-12"></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {tasks.length === 0 ? (
+      <div className="border rounded-md overflow-hidden">
+        <ScrollArea className="h-[calc(100vh-320px)]" scrollHideDelay={0}>
+          <Table>
+            <TableHeader>
               <TableRow>
-                <TableCell colSpan={dates.length + 3} className="text-center py-6 text-muted-foreground">
-                  No daily essential tasks added yet. Add your first task above.
-                </TableCell>
+                <TableHead className="w-12">No.</TableHead>
+                <TableHead>Task</TableHead>
+                {dates.map((date) => (
+                  <TableHead 
+                    key={date} 
+                    className={cn(
+                      "text-center min-w-[100px]",
+                      isToday(date) && "bg-todo-purple/30"
+                    )}
+                  >
+                    {formatDateDisplay(date)}
+                    {isToday(date) && <span className="ml-1">(Today)</span>}
+                  </TableHead>
+                ))}
+                <TableHead className="w-12"></TableHead>
               </TableRow>
-            ) : (
-              tasks.map((task, index) => (
-                <TableRow key={task.id}>
-                  <TableCell className="font-medium">{index + 1}</TableCell>
-                  <TableCell>{task.name}</TableCell>
-                  {dates.map((date) => (
-                    <TableCell key={`${task.id}-${date}`} className="text-center">
-                      <Select
-                        value={task.statuses[date] || ""}
-                        onValueChange={(value) => updateStatus(task.id, date, value)}
-                      >
-                        <SelectTrigger className={cn(
-                          "h-8 w-full",
-                          task.statuses[date] === "Done" && "bg-green-900/30 text-green-300",
-                          task.statuses[date] === "Not Done" && "bg-red-900/30 text-red-300",
-                          task.statuses[date] === "Partial" && "bg-yellow-900/30 text-yellow-300",
-                          task.statuses[date] === "Skipped" && "bg-gray-900/30 text-gray-300",
-                        )}>
-                          <SelectValue placeholder="Status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {statusOptions.map(option => (
-                            <SelectItem key={option.value} value={option.value}>
-                              {option.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </TableCell>
-                  ))}
-                  <TableCell>
-                    <Button variant="ghost" size="icon" onClick={() => removeTask(task.id)}>
-                      <Trash2 className="h-4 w-4 text-red-400" />
-                    </Button>
+            </TableHeader>
+            <TableBody>
+              {tasks.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={dates.length + 3} className="text-center py-6 text-muted-foreground">
+                    No daily essential tasks added yet. Add your first task above.
                   </TableCell>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
+              ) : (
+                tasks.map((task, index) => (
+                  <TableRow key={task.id}>
+                    <TableCell className="font-medium">{index + 1}</TableCell>
+                    <TableCell>{task.name}</TableCell>
+                    {dates.map((date) => (
+                      <TableCell key={`${task.id}-${date}`} className="text-center">
+                        <Select
+                          value={task.statuses[date] || "not-set"}
+                          onValueChange={(value) => updateStatus(task.id, date, value)}
+                        >
+                          <SelectTrigger className={cn(
+                            "h-8 w-full",
+                            task.statuses[date] === "Done" && "bg-green-900/30 text-green-300",
+                            task.statuses[date] === "Not Done" && "bg-red-900/30 text-red-300",
+                            task.statuses[date] === "Partial" && "bg-yellow-900/30 text-yellow-300",
+                            task.statuses[date] === "Skipped" && "bg-gray-900/30 text-gray-300",
+                          )}>
+                            <SelectValue placeholder="Status" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {statusOptions.map(option => (
+                              <SelectItem key={option.value} value={option.value}>
+                                {option.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </TableCell>
+                    ))}
+                    <TableCell>
+                      <Button variant="ghost" size="icon" onClick={() => removeTask(task.id)}>
+                        <Trash2 className="h-4 w-4 text-red-400" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </ScrollArea>
       </div>
       
       <div className="mt-4">
