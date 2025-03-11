@@ -158,8 +158,8 @@ export function DailyEssentialsTable() {
         </Button>
       </div>
       
-      <div className="border rounded-md overflow-hidden">
-        <ScrollArea className="h-[calc(100vh-320px)]">
+      <div className="border rounded-md">
+        <ScrollArea className="h-[calc(100vh-320px)]" style={{ overflow: 'hidden' }}>
           <Table>
             <TableHeader>
               <TableRow>
