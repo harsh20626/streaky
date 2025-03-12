@@ -6,9 +6,9 @@ import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { useAuth } from "@/contexts/AuthContext";
 import { Separator } from "@/components/ui/separator";
 import { Globe, Github, Mail } from "lucide-react";
+import { useFirebaseAuth } from "@/contexts/FirebaseAuthContext";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
@@ -22,7 +22,9 @@ interface LoginFormProps {
 }
 
 export function LoginForm({ setActiveTab }: LoginFormProps) {
-  const { login, loginWithGoogle, loginWithGithub, loginWithMicrosoft, isLoading } = useAuth();
+  const { login, loginWithGoogle, loginWithGithub, loginWithMicrosoft, isLoading } = useFirebaseAuth();
+  const [resetEmail, setResetEmail] = useState("");
+  const [showResetForm, setShowResetForm] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
   const form = useForm<FormValues>({
@@ -38,11 +40,7 @@ export function LoginForm({ setActiveTab }: LoginFormProps) {
       setError(null);
       await login(data.email, data.password);
     } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("An unknown error occurred");
-      }
+      // Error is handled in the auth context
     }
   };
   
@@ -51,11 +49,7 @@ export function LoginForm({ setActiveTab }: LoginFormProps) {
       setError(null);
       await loginWithGoogle();
     } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("An unknown error occurred");
-      }
+      // Error is handled in the auth context
     }
   };
   
@@ -64,11 +58,7 @@ export function LoginForm({ setActiveTab }: LoginFormProps) {
       setError(null);
       await loginWithGithub();
     } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("An unknown error occurred");
-      }
+      // Error is handled in the auth context
     }
   };
   
@@ -77,11 +67,20 @@ export function LoginForm({ setActiveTab }: LoginFormProps) {
       setError(null);
       await loginWithMicrosoft();
     } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("An unknown error occurred");
+      // Error is handled in the auth context
+    }
+  };
+  
+  const handleResetPassword = async () => {
+    try {
+      if (!resetEmail) {
+        setError("Please enter your email address");
+        return;
       }
+      await useFirebaseAuth().resetPassword(resetEmail);
+      setShowResetForm(false);
+    } catch (err) {
+      // Error is handled in the auth context
     }
   };
   
@@ -98,62 +97,107 @@ export function LoginForm({ setActiveTab }: LoginFormProps) {
   
   return (
     <div className="space-y-6">
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-purple-200">Email</FormLabel>
-                <FormControl>
-                  <Input 
-                    placeholder="you@example.com" 
-                    {...field} 
-                    className="bg-todo-gray/50"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+      {showResetForm ? (
+        <div className="space-y-4">
+          <h3 className="font-medium text-purple-200">Reset Password</h3>
+          <Input
+            type="email"
+            placeholder="Enter your email"
+            value={resetEmail}
+            onChange={(e) => setResetEmail(e.target.value)}
+            className="bg-todo-gray/50"
           />
-          
-          <FormField
-            control={form.control}
-            name="password"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-purple-200">Password</FormLabel>
-                <FormControl>
-                  <Input 
-                    type="password" 
-                    placeholder="••••••••" 
-                    {...field}
-                    className="bg-todo-gray/50"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
           {error && (
             <div className="bg-red-900/30 text-red-300 p-3 rounded-md text-sm">
               {error}
             </div>
           )}
-          
-          <div className="pt-2">
+          <div className="flex gap-2">
             <Button
-              type="submit"
-              className="w-full bg-todo-purple hover:bg-todo-purple/90"
+              type="button"
+              variant="outline"
+              className="flex-1"
+              onClick={() => setShowResetForm(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              className="flex-1 bg-todo-purple hover:bg-todo-purple/90"
+              onClick={handleResetPassword}
               disabled={isLoading}
             >
-              {isLoading ? "Logging in..." : "Login"}
+              Send Reset Link
             </Button>
           </div>
-        </form>
-      </Form>
+        </div>
+      ) : (
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-purple-200">Email</FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="you@example.com" 
+                      {...field} 
+                      className="bg-todo-gray/50"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-purple-200">Password</FormLabel>
+                  <FormControl>
+                    <Input 
+                      type="password" 
+                      placeholder="••••••••" 
+                      {...field}
+                      className="bg-todo-gray/50"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            {error && (
+              <div className="bg-red-900/30 text-red-300 p-3 rounded-md text-sm">
+                {error}
+              </div>
+            )}
+            
+            <div className="pt-2">
+              <Button
+                type="submit"
+                className="w-full bg-todo-purple hover:bg-todo-purple/90"
+                disabled={isLoading}
+              >
+                {isLoading ? "Logging in..." : "Login"}
+              </Button>
+            </div>
+            
+            <Button
+              type="button"
+              variant="link"
+              className="p-0 text-purple-300 hover:text-purple-200 text-sm w-full flex justify-end"
+              onClick={() => setShowResetForm(true)}
+            >
+              Forgot password?
+            </Button>
+          </form>
+        </Form>
+      )}
       
       <div className="flex items-center">
         <Separator className="flex-1 bg-purple-500/10" />

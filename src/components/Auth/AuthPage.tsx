@@ -1,17 +1,17 @@
 
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LoginForm } from "./LoginForm";
 import { SignupForm } from "./SignupForm";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
+import { useFirebaseAuth } from "@/contexts/FirebaseAuthContext";
 
 export function AuthPage() {
   const [activeTab, setActiveTab] = useState("login");
-  const { user } = useAuth();
+  const { currentUser, isLoading } = useFirebaseAuth();
   const navigate = useNavigate();
   const [isInitialMount, setIsInitialMount] = useState(true);
   
@@ -22,10 +22,10 @@ export function AuthPage() {
 
   useEffect(() => {
     // Only redirect when it's not the initial mount and user is logged in
-    if (!isInitialMount && user) {
+    if (!isInitialMount && currentUser) {
       navigate("/");
     }
-  }, [user, navigate, isInitialMount]);
+  }, [currentUser, navigate, isInitialMount]);
 
   const goBack = () => {
     navigate("/");

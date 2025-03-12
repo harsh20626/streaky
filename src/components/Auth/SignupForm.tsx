@@ -6,9 +6,9 @@ import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { useAuth } from "@/contexts/AuthContext";
 import { Separator } from "@/components/ui/separator";
 import { Globe, Github, Mail } from "lucide-react";
+import { useFirebaseAuth } from "@/contexts/FirebaseAuthContext";
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters" }),
@@ -23,7 +23,7 @@ interface SignupFormProps {
 }
 
 export function SignupForm({ setActiveTab }: SignupFormProps) {
-  const { signup, loginWithGoogle, loginWithGithub, loginWithMicrosoft, isLoading } = useAuth();
+  const { signup, loginWithGoogle, loginWithGithub, loginWithMicrosoft, isLoading } = useFirebaseAuth();
   const [error, setError] = useState<string | null>(null);
   
   const form = useForm<FormValues>({
@@ -40,11 +40,7 @@ export function SignupForm({ setActiveTab }: SignupFormProps) {
       setError(null);
       await signup(data.email, data.password, data.name);
     } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("An unknown error occurred");
-      }
+      // Error is handled in the auth context
     }
   };
   
@@ -53,11 +49,7 @@ export function SignupForm({ setActiveTab }: SignupFormProps) {
       setError(null);
       await loginWithGoogle();
     } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("An unknown error occurred");
-      }
+      // Error is handled in the auth context
     }
   };
   
@@ -66,11 +58,7 @@ export function SignupForm({ setActiveTab }: SignupFormProps) {
       setError(null);
       await loginWithGithub();
     } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("An unknown error occurred");
-      }
+      // Error is handled in the auth context
     }
   };
   
@@ -79,11 +67,7 @@ export function SignupForm({ setActiveTab }: SignupFormProps) {
       setError(null);
       await loginWithMicrosoft();
     } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("An unknown error occurred");
-      }
+      // Error is handled in the auth context
     }
   };
   

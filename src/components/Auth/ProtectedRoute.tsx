@@ -1,9 +1,9 @@
 
 import { Navigate } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
+import { useFirebaseAuth } from "@/contexts/FirebaseAuthContext";
 
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user, isLoading } = useAuth();
+  const { currentUser, isLoading } = useFirebaseAuth();
   
   // Show loading state while checking authentication
   if (isLoading) {
@@ -15,7 +15,7 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   }
   
   // Redirect to login if not authenticated
-  if (!user) {
+  if (!currentUser) {
     return <Navigate to="/auth" replace />;
   }
   
