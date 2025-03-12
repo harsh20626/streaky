@@ -191,8 +191,7 @@ export function DailyEssentialsTable() {
       
       <div className="border rounded-md overflow-hidden">
         <ScrollArea 
-          className="h-[calc(100vh-320px)]" 
-          orientation="horizontal"
+          className="h-[calc(100vh-320px)]"
         >
           <div className="min-w-max">
             <Table>

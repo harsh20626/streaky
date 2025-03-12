@@ -9,8 +9,9 @@ const Progress = React.forwardRef<
     value?: number
     max?: number
     getFillColor?: (value: number) => string
+    indicatorClassName?: string // Added support for indicatorClassName
   }
->(({ className, value = 0, max = 100, getFillColor, ...props }, ref) => {
+>(({ className, value = 0, max = 100, getFillColor, indicatorClassName, ...props }, ref) => {
   const percentage = (value / max) * 100
   
   const fillColor = getFillColor 
@@ -27,7 +28,10 @@ const Progress = React.forwardRef<
       {...props}
     >
       <div
-        className="h-full w-full flex-1 bg-primary transition-all"
+        className={cn(
+          "h-full w-full flex-1 bg-primary transition-all",
+          indicatorClassName
+        )}
         style={{ 
           width: `${percentage}%`,
           backgroundColor: fillColor 
