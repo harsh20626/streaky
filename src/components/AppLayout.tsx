@@ -3,32 +3,29 @@ import { useEffect, useState } from "react";
 import { Dashboard } from "@/components/Dashboard";
 import { format } from "date-fns";
 import { 
-  BookText, 
   CheckCircle2, 
   Menu, 
-  MoonStar, 
   LayoutDashboard, 
   Timer, 
-  History, 
-  Trophy,
-  Users,
-  User,
-  Settings,
-  Zap,
-  ListTodo
+  History,
+  LineChart,
+  BarChart3,
+  ListTodo,
+  MoonStar,
+  BookText
 } from "lucide-react";
 import { useTodo } from "@/contexts/TodoContext";
 import { cn } from "@/lib/utils";
-import { useNavigate } from "react-router-dom";
 
 export function AppLayout() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const { todos } = useTodo();
-  const [activeTab, setActiveTab] = useState("today");
-  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState("dashboard");
   
   const completedToday = todos.filter(todo => todo.completed).length;
+  const totalTasks = todos.length;
+  const completionRate = totalTasks > 0 ? Math.round((completedToday / totalTasks) * 100) : 0;
   
   // Update the time every minute
   useEffect(() => {
@@ -46,10 +43,6 @@ export function AppLayout() {
     setActiveTab(tab);
   };
 
-  const handleNavigate = (path: string) => {
-    navigate(path);
-  };
-
   return (
     <div className="min-h-screen flex">
       {/* Sidebar */}
@@ -61,8 +54,8 @@ export function AppLayout() {
       >
         <div className="p-4 flex items-center justify-between">
           <div className={cn("flex items-center gap-2", !sidebarOpen && "hidden")}>
-            <BookText className="h-5 w-5 text-todo-purple" />
-            <h1 className="text-lg font-bold text-gradient-primary">SoulScript</h1>
+            <BookText className="h-5 w-5 text-white" />
+            <h1 className="text-lg font-bold text-gradient-primary">Streaky</h1>
           </div>
           <button 
             onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -72,7 +65,7 @@ export function AppLayout() {
           </button>
         </div>
 
-        <nav className="px-2 py-4 h-[calc(100vh-80px)] flex flex-col justify-between">
+        <nav className="px-2 py-4 h-[calc(100vh-80px)] flex flex-col justify-between overflow-y-auto scrollbar-transparent">
           <div>
             <div className="mb-4 px-3">
               <h2 className={cn("text-xs uppercase text-sidebar-foreground/50 font-medium mb-2", !sidebarOpen && "sr-only")}>
@@ -81,13 +74,25 @@ export function AppLayout() {
               <ul className="space-y-1">
                 <li>
                   <button
+                    onClick={() => handleTabChange("dashboard")}
+                    className={cn(
+                      "w-full flex items-center gap-3 px-3 py-2 rounded-md text-sidebar-foreground hover:bg-sidebar-accent transition-colors",
+                      activeTab === "dashboard" && "bg-white/10 text-white"
+                    )}
+                  >
+                    <LayoutDashboard className={cn("h-5 w-5", !sidebarOpen && "mx-auto")} />
+                    {sidebarOpen && <span>Dashboard</span>}
+                  </button>
+                </li>
+                <li>
+                  <button
                     onClick={() => handleTabChange("today")}
                     className={cn(
                       "w-full flex items-center gap-3 px-3 py-2 rounded-md text-sidebar-foreground hover:bg-sidebar-accent transition-colors",
-                      activeTab === "today" && "bg-purple-900/40 text-purple-300"
+                      activeTab === "today" && "bg-white/10 text-white"
                     )}
                   >
-                    <CheckCircle2 className={cn("h-5 w-5 text-todo-purple", !sidebarOpen && "mx-auto")} />
+                    <CheckCircle2 className={cn("h-5 w-5", !sidebarOpen && "mx-auto")} />
                     {sidebarOpen && <span>Todo List</span>}
                   </button>
                 </li>
@@ -96,11 +101,23 @@ export function AppLayout() {
                     onClick={() => handleTabChange("essentials")}
                     className={cn(
                       "w-full flex items-center gap-3 px-3 py-2 rounded-md text-sidebar-foreground hover:bg-sidebar-accent transition-colors",
-                      activeTab === "essentials" && "bg-purple-900/40 text-purple-300"
+                      activeTab === "essentials" && "bg-white/10 text-white"
                     )}
                   >
-                    <ListTodo className={cn("h-5 w-5 text-cyan-400", !sidebarOpen && "mx-auto")} />
+                    <ListTodo className={cn("h-5 w-5", !sidebarOpen && "mx-auto")} />
                     {sidebarOpen && <span>Daily Essentials</span>}
+                  </button>
+                </li>
+                <li>
+                  <button
+                    onClick={() => handleTabChange("analytics")}
+                    className={cn(
+                      "w-full flex items-center gap-3 px-3 py-2 rounded-md text-sidebar-foreground hover:bg-sidebar-accent transition-colors",
+                      activeTab === "analytics" && "bg-white/10 text-white"
+                    )}
+                  >
+                    <LineChart className={cn("h-5 w-5", !sidebarOpen && "mx-auto")} />
+                    {sidebarOpen && <span>Analytics</span>}
                   </button>
                 </li>
                 <li>
@@ -108,10 +125,10 @@ export function AppLayout() {
                     onClick={() => handleTabChange("pomodoro")}
                     className={cn(
                       "w-full flex items-center gap-3 px-3 py-2 rounded-md text-sidebar-foreground hover:bg-sidebar-accent transition-colors",
-                      activeTab === "pomodoro" && "bg-purple-900/40 text-purple-300"
+                      activeTab === "pomodoro" && "bg-white/10 text-white"
                     )}
                   >
-                    <Timer className={cn("h-5 w-5 text-orange-500", !sidebarOpen && "mx-auto")} />
+                    <Timer className={cn("h-5 w-5", !sidebarOpen && "mx-auto")} />
                     {sidebarOpen && <span>Focus Timer</span>}
                   </button>
                 </li>
@@ -120,35 +137,11 @@ export function AppLayout() {
                     onClick={() => handleTabChange("journal")}
                     className={cn(
                       "w-full flex items-center gap-3 px-3 py-2 rounded-md text-sidebar-foreground hover:bg-sidebar-accent transition-colors",
-                      activeTab === "journal" && "bg-purple-900/40 text-purple-300"
+                      activeTab === "journal" && "bg-white/10 text-white"
                     )}
                   >
-                    <MoonStar className={cn("h-5 w-5 text-yellow-500", !sidebarOpen && "mx-auto")} />
+                    <MoonStar className={cn("h-5 w-5", !sidebarOpen && "mx-auto")} />
                     {sidebarOpen && <span>Journal</span>}
-                  </button>
-                </li>
-                <li>
-                  <button
-                    onClick={() => handleTabChange("motivation")}
-                    className={cn(
-                      "w-full flex items-center gap-3 px-3 py-2 rounded-md text-sidebar-foreground hover:bg-sidebar-accent transition-colors",
-                      activeTab === "motivation" && "bg-purple-900/40 text-purple-300"
-                    )}
-                  >
-                    <Zap className={cn("h-5 w-5 text-amber-500", !sidebarOpen && "mx-auto")} />
-                    {sidebarOpen && <span>Motivation</span>}
-                  </button>
-                </li>
-                <li>
-                  <button
-                    onClick={() => handleTabChange("analytics")}
-                    className={cn(
-                      "w-full flex items-center gap-3 px-3 py-2 rounded-md text-sidebar-foreground hover:bg-sidebar-accent transition-colors",
-                      activeTab === "analytics" && "bg-purple-900/40 text-purple-300"
-                    )}
-                  >
-                    <LayoutDashboard className={cn("h-5 w-5 text-blue-500", !sidebarOpen && "mx-auto")} />
-                    {sidebarOpen && <span>Analytics</span>}
                   </button>
                 </li>
                 <li>
@@ -156,87 +149,68 @@ export function AppLayout() {
                     onClick={() => handleTabChange("history")}
                     className={cn(
                       "w-full flex items-center gap-3 px-3 py-2 rounded-md text-sidebar-foreground hover:bg-sidebar-accent transition-colors",
-                      activeTab === "history" && "bg-purple-900/40 text-purple-300"
+                      activeTab === "history" && "bg-white/10 text-white"
                     )}
                   >
-                    <History className={cn("h-5 w-5 text-green-500", !sidebarOpen && "mx-auto")} />
+                    <History className={cn("h-5 w-5", !sidebarOpen && "mx-auto")} />
                     {sidebarOpen && <span>History</span>}
-                  </button>
-                </li>
-              </ul>
-            </div>
-
-            <div className="mb-4 px-3">
-              <h2 className={cn("text-xs uppercase text-sidebar-foreground/50 font-medium mb-2", !sidebarOpen && "sr-only")}>
-                Social
-              </h2>
-              <ul className="space-y-1">
-                <li>
-                  <button
-                    onClick={() => handleNavigate("/community")}
-                    className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
-                  >
-                    <Users className={cn("h-5 w-5 text-indigo-400", !sidebarOpen && "mx-auto")} />
-                    {sidebarOpen && <span>Community</span>}
-                  </button>
-                </li>
-                <li>
-                  <button
-                    onClick={() => handleTabChange("achievements")}
-                    className={cn(
-                      "w-full flex items-center gap-3 px-3 py-2 rounded-md text-sidebar-foreground hover:bg-sidebar-accent transition-colors",
-                      activeTab === "achievements" && "bg-purple-900/40 text-purple-300"
-                    )}
-                  >
-                    <Trophy className={cn("h-5 w-5 text-amber-400", !sidebarOpen && "mx-auto")} />
-                    {sidebarOpen && <span>Achievements</span>}
                   </button>
                 </li>
               </ul>
             </div>
           </div>
 
-          <div className="px-3 mt-auto">
-            <ul className="space-y-1">
-              <li>
-                <button
-                  onClick={() => handleNavigate("/profile")}
-                  className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
-                >
-                  <User className={cn("h-5 w-5 text-purple-300", !sidebarOpen && "mx-auto")} />
-                  {sidebarOpen && <span>Profile</span>}
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => handleNavigate("/auth")}
-                  className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
-                >
-                  <Settings className={cn("h-5 w-5 text-gray-400", !sidebarOpen && "mx-auto")} />
-                  {sidebarOpen && <span>Login / Settings</span>}
-                </button>
-              </li>
-            </ul>
+          <div className="mt-auto px-3">
+            {sidebarOpen && (
+              <div className="py-2 px-3 bg-white/5 rounded-md text-xs text-white/70">
+                <div className="flex justify-between mb-1">
+                  <span>Today's Progress</span>
+                  <span>{completionRate}%</span>
+                </div>
+                <div className="w-full bg-white/10 rounded-full h-1.5">
+                  <div 
+                    className="bg-white h-1.5 rounded-full" 
+                    style={{ width: `${completionRate}%` }}
+                  ></div>
+                </div>
+              </div>
+            )}
           </div>
         </nav>
       </aside>
 
       {/* Main content */}
       <div className={cn(
-        "flex-1 transition-all duration-300 bg-gradient-to-br from-todo-dark via-todo-dark to-purple-950/30",
+        "flex-1 transition-all duration-300 bg-todo-dark",
         sidebarOpen ? "ml-64" : "ml-16"
       )}>
-        <header className="py-6 px-4 sm:px-6 md:px-8 text-center">
-          <div className="inline-flex items-center gap-2 bg-todo-gray/40 px-4 py-2 rounded-full mb-2 backdrop-blur-md border border-purple-500/10 shadow-md">
-            <CheckCircle2 className="h-5 w-5 text-todo-purple" />
-            <h1 className="text-xl font-bold text-gradient-primary">Streaky</h1>
-          </div>
-          <div className="flex justify-center items-center mt-2 text-sm text-purple-300/80">
-            <span>{formattedDate} • {formattedTime}</span>
+        <header className="py-6 px-4 sm:px-6 md:px-8 border-b border-white/5">
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-xl font-bold text-white">
+                {activeTab === "dashboard" && "Dashboard"}
+                {activeTab === "today" && "Todo List"}
+                {activeTab === "essentials" && "Daily Essentials"}
+                {activeTab === "analytics" && "Analytics"}
+                {activeTab === "pomodoro" && "Focus Timer"}
+                {activeTab === "journal" && "Journal"}
+                {activeTab === "history" && "History"}
+              </h1>
+              <p className="text-sm text-white/60">{formattedDate} • {formattedTime}</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="text-right mr-2">
+                <p className="text-sm font-medium text-white">{completedToday}/{totalTasks} tasks</p>
+                <p className="text-xs text-white/60">Today's progress</p>
+              </div>
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10">
+                <BarChart3 className="h-5 w-5 text-white" />
+              </div>
+            </div>
           </div>
         </header>
 
-        <main className="flex-1 container max-w-4xl px-4 sm:px-6 pb-20">
+        <main className="flex-1 container max-w-6xl px-4 sm:px-6 py-6 overflow-y-auto scrollbar-transparent">
           <Dashboard activeTab={activeTab} onTabChange={setActiveTab} />
         </main>
       </div>

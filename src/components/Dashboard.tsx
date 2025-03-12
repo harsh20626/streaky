@@ -5,19 +5,16 @@ import { TaskAnalytics } from "@/components/TaskAnalytics";
 import { TaskHistory } from "@/components/TaskHistory";
 import { PomodoroTimer } from "@/components/PomodoroTimer";
 import { Journal } from "@/components/Journal";
-import { Achievements } from "@/components/Achievements";
-import { Motivation } from "@/components/Motivation";
 import { DailyEssentialsTable } from "@/components/DailyEssentials/DailyEssentialsTable";
-import { useAuth } from "@/contexts/AuthContext";
 import { useState, useEffect } from "react";
+import { ProductivityDashboard } from "./ProductivityDashboard";
 
 interface DashboardProps {
   activeTab?: string;
   onTabChange?: (tab: string) => void;
 }
 
-export function Dashboard({ activeTab = "today", onTabChange }: DashboardProps) {
-  const { user } = useAuth();
+export function Dashboard({ activeTab = "dashboard", onTabChange }: DashboardProps) {
   const [greeting, setGreeting] = useState("");
   
   useEffect(() => {
@@ -33,7 +30,7 @@ export function Dashboard({ activeTab = "today", onTabChange }: DashboardProps) 
         greetText = "Good evening";
       }
       
-      return `${greetText}, ${user?.name || 'there'}!`;
+      return `${greetText}!`;
     };
     
     setGreeting(getTimeBasedGreeting());
@@ -44,7 +41,7 @@ export function Dashboard({ activeTab = "today", onTabChange }: DashboardProps) 
     }, 3600000);
     
     return () => clearInterval(interval);
-  }, [user]);
+  }, []);
 
   const handleValueChange = (value: string) => {
     if (onTabChange) {
@@ -54,19 +51,16 @@ export function Dashboard({ activeTab = "today", onTabChange }: DashboardProps) 
   
   return (
     <div className="space-y-4">
-      {user && (
-        <div className="mb-4">
-          <h2 className="text-xl font-semibold text-purple-200">{greeting}</h2>
-          <p className="text-sm text-purple-300/70">Welcome to your productivity dashboard</p>
-        </div>
-      )}
-      
       <Tabs 
-        defaultValue="today" 
+        defaultValue="dashboard" 
         value={activeTab} 
         onValueChange={handleValueChange}
         className="w-full animate-fade-in"
       >
+        <TabsContent value="dashboard" className="focus-visible:outline-none">
+          <ProductivityDashboard />
+        </TabsContent>
+        
         <TabsContent value="today" className="focus-visible:outline-none">
           <TodoList />
         </TabsContent>
@@ -85,20 +79,12 @@ export function Dashboard({ activeTab = "today", onTabChange }: DashboardProps) 
           <Journal />
         </TabsContent>
         
-        <TabsContent value="motivation" className="focus-visible:outline-none">
-          <Motivation />
-        </TabsContent>
-        
         <TabsContent value="analytics" className="focus-visible:outline-none">
           <TaskAnalytics />
         </TabsContent>
         
         <TabsContent value="history" className="focus-visible:outline-none">
           <TaskHistory />
-        </TabsContent>
-        
-        <TabsContent value="achievements" className="focus-visible:outline-none">
-          <Achievements />
         </TabsContent>
       </Tabs>
     </div>

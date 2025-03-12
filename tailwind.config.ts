@@ -63,10 +63,10 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// Custom colors for our app
-				'todo-purple': '#9b87f5',
-				'todo-dark': '#121212',
-				'todo-gray': '#1e1e1e',
+				// Custom colors for our app - now black and white
+				'todo-purple': '#ffffff',
+				'todo-dark': '#000000',
+				'todo-gray': '#222222',
 				'todo-light': '#f5f5f5',
 			},
 			borderRadius: {
