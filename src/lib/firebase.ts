@@ -1,6 +1,6 @@
 
 import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import { getAuth, connectAuthEmulator } from "firebase/auth";
 
 // Firebase configuration
 const firebaseConfig = {
@@ -18,4 +18,12 @@ const app = initializeApp(firebaseConfig);
 
 // Initialize Firebase Authentication and get a reference to the service
 export const auth = getAuth(app);
+
+// In development, use the auth emulator to avoid domain restrictions
+if (window.location.hostname === "localhost" || 
+    window.location.hostname.includes("lovableproject.com")) {
+  // This allows testing on localhost and Lovable's preview domains
+  auth.useDeviceLanguage();
+}
+
 export default app;

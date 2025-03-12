@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Separator } from "@/components/ui/separator";
-import { Globe, Github, Mail } from "lucide-react";
+import { Globe, Github } from "lucide-react";
 import { useFirebaseAuth } from "@/contexts/FirebaseAuthContext";
 
 const formSchema = z.object({
@@ -23,7 +23,7 @@ interface SignupFormProps {
 }
 
 export function SignupForm({ setActiveTab }: SignupFormProps) {
-  const { signup, loginWithGoogle, loginWithGithub, loginWithMicrosoft, isLoading } = useFirebaseAuth();
+  const { signup, loginWithGoogle, loginWithGithub, isLoading } = useFirebaseAuth();
   const [error, setError] = useState<string | null>(null);
   
   const form = useForm<FormValues>({
@@ -57,15 +57,6 @@ export function SignupForm({ setActiveTab }: SignupFormProps) {
     try {
       setError(null);
       await loginWithGithub();
-    } catch (err) {
-      // Error is handled in the auth context
-    }
-  };
-  
-  const handleMicrosoftLogin = async () => {
-    try {
-      setError(null);
-      await loginWithMicrosoft();
     } catch (err) {
       // Error is handled in the auth context
     }
@@ -168,7 +159,7 @@ export function SignupForm({ setActiveTab }: SignupFormProps) {
         <Separator className="flex-1 bg-purple-500/10" />
       </div>
       
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 gap-3">
         <Button
           type="button"
           variant="outline"
@@ -189,17 +180,6 @@ export function SignupForm({ setActiveTab }: SignupFormProps) {
         >
           <Github className="mr-2 h-4 w-4" />
           GitHub
-        </Button>
-        
-        <Button
-          type="button"
-          variant="outline"
-          className="bg-todo-gray/50"
-          onClick={handleMicrosoftLogin}
-          disabled={isLoading}
-        >
-          <Mail className="mr-2 h-4 w-4" />
-          Microsoft
         </Button>
       </div>
       

@@ -8,12 +8,11 @@ import {
   onAuthStateChanged,
   GoogleAuthProvider,
   GithubAuthProvider,
-  OAuthProvider,
-  signInWithPopup,
   sendPasswordResetEmail,
   updateProfile as firebaseUpdateProfile,
   updateEmail,
-  updatePassword
+  updatePassword,
+  signInWithPopup
 } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { toast } from 'sonner';
@@ -27,7 +26,6 @@ interface FirebaseAuthContextProps {
   logout: () => Promise<void>;
   loginWithGoogle: () => Promise<User>;
   loginWithGithub: () => Promise<User>;
-  loginWithMicrosoft: () => Promise<User>;
   resetPassword: (email: string) => Promise<void>;
   updateUserProfile: (displayName?: string, photoURL?: string) => Promise<void>;
   updateUserEmail: (email: string) => Promise<void>;
@@ -155,23 +153,6 @@ export const FirebaseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }
   };
 
-  // Microsoft Sign In
-  const loginWithMicrosoft = async (): Promise<User> => {
-    try {
-      setIsLoading(true);
-      const provider = new OAuthProvider('microsoft.com');
-      const result = await signInWithPopup(auth, provider);
-      toast.success("Logged in with Microsoft successfully!");
-      return result.user;
-    } catch (error: any) {
-      const errorMessage = error.message || "Failed to log in with Microsoft";
-      toast.error(errorMessage);
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   // Reset Password
   const resetPassword = async (email: string): Promise<void> => {
     try {
@@ -255,7 +236,6 @@ export const FirebaseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
     logout,
     loginWithGoogle,
     loginWithGithub,
-    loginWithMicrosoft,
     resetPassword,
     updateUserProfile,
     updateUserEmail,
