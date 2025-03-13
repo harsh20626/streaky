@@ -4,10 +4,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { PlusIcon, Trash2 } from "lucide-react";
+import { PlusIcon, Trash2, ChevronLeft, ChevronRight, Calendar as CalendarIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { format, addWeeks, subWeeks, startOfWeek, endOfWeek } from "date-fns";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 interface EssentialTask {
   id: string;
@@ -15,9 +19,9 @@ interface EssentialTask {
   statuses: Record<string, string>;
 }
 
-const generateDates = (daysBack = 3, daysForward = 3): string[] => {
+const generateDates = (startDate: Date, daysBack = 3, daysForward = 3): string[] => {
   const dates: string[] = [];
-  const today = new Date();
+  const today = startDate;
   
   for (let i = daysBack; i > 0; i--) {
     const date = new Date(today);
@@ -49,8 +53,17 @@ const isToday = (dateString: string): boolean => {
 export function DailyEssentialsTable() {
   const [tasks, setTasks] = useState<EssentialTask[]>([]);
   const [newTaskName, setNewTaskName] = useState("");
-  const [dates, setDates] = useState<string[]>(generateDates());
+  const [selectedWeek, setSelectedWeek] = useState(new Date());
+  const [dates, setDates] = useState<string[]>(generateDates(new Date()));
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const { toast } = useToast();
+  
+  // Update dates when selected week changes
+  useEffect(() => {
+    const weekStart = startOfWeek(selectedWeek);
+    const newDates = generateDates(weekStart, 0, 6);
+    setDates(newDates);
+  }, [selectedWeek]);
   
   // Update dates at midnight (for date changing)
   useEffect(() => {
@@ -66,7 +79,7 @@ export function DailyEssentialsTable() {
     
     // Set up timer to update dates at midnight
     const checkForDateChange = () => {
-      const newDates = generateDates();
+      const newDates = generateDates(new Date());
       const currentToday = new Date().toISOString().split('T')[0];
       const lastDate = dates[dates.indexOf(currentToday) + 1];
       
@@ -173,9 +186,63 @@ export function DailyEssentialsTable() {
       addTask();
     }
   };
+
+  const handlePreviousWeek = () => {
+    setSelectedWeek(prev => subWeeks(prev, 1));
+  };
+
+  const handleNextWeek = () => {
+    setSelectedWeek(prev => addWeeks(prev, 1));
+  };
+
+  const handleCalendarSelect = (date: Date | undefined) => {
+    if (date) {
+      setSelectedDate(date);
+      setSelectedWeek(date);
+    }
+  };
   
   return (
     <div className="space-y-4">
+      {/* Week selector */}
+      <Card className="bg-sidebar/10 border-white/5">
+        <CardContent className="p-4">
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-2">
+            <div>
+              <h2 className="text-lg font-semibold">Daily Essentials</h2>
+              <p className="text-sm text-white/60">Track your daily habits and routines</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={handlePreviousWeek}>
+                <ChevronLeft className="h-4 w-4 mr-1" /> Previous
+              </Button>
+              
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="sm" className="min-w-[150px]">
+                    <CalendarIcon className="h-4 w-4 mr-2" /> 
+                    Week of {format(startOfWeek(selectedWeek), "MMM d, yyyy")}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="center">
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={handleCalendarSelect}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
+              
+              <Button variant="outline" size="sm" onClick={handleNextWeek}>
+                Next <ChevronRight className="h-4 w-4 ml-1" />
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    
       <div className="flex items-center gap-2">
         <Input
           placeholder="Add a new daily essential task..."

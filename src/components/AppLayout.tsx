@@ -12,10 +12,13 @@ import {
   BarChart3,
   ListTodo,
   MoonStar,
-  BookText
+  BookText,
+  Calendar,
+  PieChart
 } from "lucide-react";
 import { useTodo } from "@/contexts/TodoContext";
 import { cn } from "@/lib/utils";
+import { OnboardingGuide } from "@/components/OnboardingGuide";
 
 export function AppLayout() {
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -45,6 +48,9 @@ export function AppLayout() {
 
   return (
     <div className="min-h-screen flex">
+      {/* Onboarding Guide for new users */}
+      <OnboardingGuide />
+      
       {/* Sidebar */}
       <aside 
         className={cn(
@@ -110,6 +116,26 @@ export function AppLayout() {
                 </li>
                 <li>
                   <button
+                    onClick={() => handleTabChange("essentials-analytics")}
+                    className={cn(
+                      "w-full flex items-center gap-3 px-3 py-2 rounded-md text-sidebar-foreground hover:bg-sidebar-accent transition-colors",
+                      activeTab === "essentials-analytics" && "bg-white/10 text-white"
+                    )}
+                  >
+                    <Calendar className={cn("h-5 w-5", !sidebarOpen && "mx-auto")} />
+                    {sidebarOpen && <span>Essentials Analytics</span>}
+                  </button>
+                </li>
+              </ul>
+            </div>
+            
+            <div className="mb-4 px-3">
+              <h2 className={cn("text-xs uppercase text-sidebar-foreground/50 font-medium mb-2", !sidebarOpen && "sr-only")}>
+                Tools
+              </h2>
+              <ul className="space-y-1">
+                <li>
+                  <button
                     onClick={() => handleTabChange("analytics")}
                     className={cn(
                       "w-full flex items-center gap-3 px-3 py-2 rounded-md text-sidebar-foreground hover:bg-sidebar-accent transition-colors",
@@ -117,7 +143,7 @@ export function AppLayout() {
                     )}
                   >
                     <LineChart className={cn("h-5 w-5", !sidebarOpen && "mx-auto")} />
-                    {sidebarOpen && <span>Analytics</span>}
+                    {sidebarOpen && <span>Task Analytics</span>}
                   </button>
                 </li>
                 <li>
@@ -191,7 +217,8 @@ export function AppLayout() {
                 {activeTab === "dashboard" && "Dashboard"}
                 {activeTab === "today" && "Todo List"}
                 {activeTab === "essentials" && "Daily Essentials"}
-                {activeTab === "analytics" && "Analytics"}
+                {activeTab === "essentials-analytics" && "Essentials Analytics"}
+                {activeTab === "analytics" && "Task Analytics"}
                 {activeTab === "pomodoro" && "Focus Timer"}
                 {activeTab === "journal" && "Journal"}
                 {activeTab === "history" && "History"}
