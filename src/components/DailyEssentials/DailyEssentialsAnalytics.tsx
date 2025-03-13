@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Calendar, CheckCircle2, Clock, Target, TrendingUp, Award } from "lucide-react";
 import { format } from "date-fns";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface EssentialTask {
   id: string;
@@ -20,6 +20,7 @@ export function DailyEssentialsAnalytics() {
     partial: 0,
     skipped: 0,
     notDone: 0,
+    notSet: 0,
     total: 0,
     completionRate: 0
   });
@@ -69,6 +70,7 @@ export function DailyEssentialsAnalytics() {
     let partial = 0;
     let skipped = 0;
     let notDone = 0;
+    let notSet = 0;
     
     tasks.forEach(task => {
       const status = task.statuses[today] || "";
@@ -76,6 +78,7 @@ export function DailyEssentialsAnalytics() {
       else if (status === "Partial") partial++;
       else if (status === "Skipped") skipped++;
       else if (status === "Not Done") notDone++;
+      else notSet++;
     });
     
     const total = tasks.length;
@@ -86,6 +89,7 @@ export function DailyEssentialsAnalytics() {
       partial, 
       skipped, 
       notDone,
+      notSet,
       total,
       completionRate
     });
@@ -94,14 +98,18 @@ export function DailyEssentialsAnalytics() {
     const trend = dates.map(date => {
       let completedCount = 0;
       let partialCount = 0;
+      let totalTasks = 0;
       
       tasks.forEach(task => {
-        const status = task.statuses[date] || "";
-        if (status === "Done") completedCount++;
-        else if (status === "Partial") partialCount += 0.5;
+        if (task.statuses[date] !== undefined) {
+          totalTasks++;
+          const status = task.statuses[date] || "";
+          if (status === "Done") completedCount++;
+          else if (status === "Partial") partialCount += 0.5;
+        }
       });
       
-      return total > 0 ? Math.round(((completedCount + partialCount) / total) * 100) : 0;
+      return totalTasks > 0 ? Math.round(((completedCount + partialCount) / totalTasks) * 100) : 0;
     });
     
     setWeeklyTrend(trend);
@@ -112,21 +120,38 @@ export function DailyEssentialsAnalytics() {
     const reversedDates = [...dates].reverse();
     
     for (const date of reversedDates) {
-      let isComplete = true;
+      let isComplete = false;
+      let hasEntries = false;
+      let completedRatio = 0;
       
-      // A day is complete if all tasks are either Done, Partial, or Skipped (not empty or Not Done)
-      for (const task of tasks) {
-        const status = task.statuses[date] || "";
-        if (status !== "Done" && status !== "Partial" && status !== "Skipped") {
-          isComplete = false;
+      // Count completed tasks for this date
+      let dateCompleted = 0;
+      let datePartial = 0;
+      let dateTotal = 0;
+      
+      tasks.forEach(task => {
+        const status = task.statuses[date];
+        if (status !== undefined) {
+          hasEntries = true;
+          dateTotal++;
+          
+          if (status === "Done") dateCompleted++;
+          else if (status === "Partial") datePartial += 0.5;
+        }
+      });
+      
+      if (hasEntries) {
+        completedRatio = (dateCompleted + datePartial) / dateTotal;
+        // A day is complete if at least 70% of tasks are completed
+        if (completedRatio >= 0.7) {
+          isComplete = true;
+          currentStreak++;
+        } else {
           break;
         }
-      }
-      
-      if (isComplete && tasks.length > 0) {
-        currentStreak++;
       } else {
-        break;
+        // Skip days with no entries (don't break streak)
+        continue;
       }
     }
     
@@ -164,8 +189,12 @@ export function DailyEssentialsAnalytics() {
     >
       {/* Today's Quick Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <motion.div variants={itemVariants}>
-          <Card className="bg-gradient-to-br from-todo-purple/30 to-todo-purple/10 border-none shadow-lg">
+        <motion.div variants={itemVariants} whileHover={{ y: -5, transition: { duration: 0.2 } }}>
+          <Card className="bg-gradient-to-br from-todo-purple/30 to-todo-purple/10 border-none shadow-lg overflow-hidden relative">
+            <div 
+              className="absolute top-0 right-0 w-20 h-20 bg-purple-600 rounded-full -mt-10 -mr-10 opacity-20 blur-xl"
+              aria-hidden="true"
+            />
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
@@ -185,13 +214,17 @@ export function DailyEssentialsAnalytics() {
           </Card>
         </motion.div>
         
-        <motion.div variants={itemVariants}>
-          <Card className="bg-gradient-to-br from-green-900/30 to-green-900/10 border-none shadow-lg">
+        <motion.div variants={itemVariants} whileHover={{ y: -5, transition: { duration: 0.2 } }}>
+          <Card className="bg-gradient-to-br from-green-900/30 to-green-900/10 border-none shadow-lg overflow-hidden relative">
+            <div 
+              className="absolute top-0 right-0 w-20 h-20 bg-green-600 rounded-full -mt-10 -mr-10 opacity-20 blur-xl"
+              aria-hidden="true"
+            />
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-white/70">Completed</p>
-                  <p className="text-2xl font-bold mt-1">{todayStats.completed}</p>
+                  <p className="text-2xl font-bold mt-1">{todayStats.completed}/{todayStats.total}</p>
                 </div>
                 <div className="h-10 w-10 rounded-full bg-green-900/20 flex items-center justify-center">
                   <CheckCircle2 className="h-5 w-5 text-green-400" />
@@ -206,8 +239,12 @@ export function DailyEssentialsAnalytics() {
           </Card>
         </motion.div>
         
-        <motion.div variants={itemVariants}>
-          <Card className="bg-gradient-to-br from-blue-900/30 to-blue-900/10 border-none shadow-lg">
+        <motion.div variants={itemVariants} whileHover={{ y: -5, transition: { duration: 0.2 } }}>
+          <Card className="bg-gradient-to-br from-blue-900/30 to-blue-900/10 border-none shadow-lg overflow-hidden relative">
+            <div 
+              className="absolute top-0 right-0 w-20 h-20 bg-blue-600 rounded-full -mt-10 -mr-10 opacity-20 blur-xl"
+              aria-hidden="true"
+            />
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
@@ -227,8 +264,12 @@ export function DailyEssentialsAnalytics() {
           </Card>
         </motion.div>
         
-        <motion.div variants={itemVariants}>
-          <Card className="bg-gradient-to-br from-orange-900/30 to-orange-900/10 border-none shadow-lg">
+        <motion.div variants={itemVariants} whileHover={{ y: -5, transition: { duration: 0.2 } }}>
+          <Card className="bg-gradient-to-br from-orange-900/30 to-orange-900/10 border-none shadow-lg overflow-hidden relative">
+            <div 
+              className="absolute top-0 right-0 w-20 h-20 bg-orange-600 rounded-full -mt-10 -mr-10 opacity-20 blur-xl"
+              aria-hidden="true"
+            />
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
@@ -241,15 +282,20 @@ export function DailyEssentialsAnalytics() {
               </div>
               <div className="flex gap-1 mt-3">
                 {weeklyTrend.map((value, i) => (
-                  <div 
+                  <motion.div 
                     key={i}
                     className="h-1.5 flex-1 rounded-full bg-white/10 overflow-hidden"
+                    initial={{ opacity: 0.5, scaleY: 0.8 }}
+                    animate={{ opacity: 1, scaleY: 1 }}
+                    transition={{ duration: 0.3, delay: i * 0.1 }}
                   >
-                    <div 
+                    <motion.div 
                       className="h-full bg-orange-400"
-                      style={{ width: `${value}%` }}
+                      initial={{ width: 0 }}
+                      animate={{ width: `${value}%` }}
+                      transition={{ duration: 0.5, delay: 0.2 + i * 0.1 }}
                     />
-                  </div>
+                  </motion.div>
                 ))}
               </div>
             </CardContent>
@@ -259,7 +305,7 @@ export function DailyEssentialsAnalytics() {
       
       {/* Weekly Trend */}
       <motion.div variants={itemVariants}>
-        <Card className="border-white/5">
+        <Card className="border-white/5 overflow-hidden">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center">
               <TrendingUp className="h-4 w-4 mr-2 text-todo-purple" />
@@ -271,14 +317,18 @@ export function DailyEssentialsAnalytics() {
               {weeklyTrend.map((value, i) => (
                 <div key={i} className="flex-1 flex flex-col items-center">
                   <motion.div 
-                    className="w-full bg-todo-purple rounded-t"
-                    style={{ height: `${value}%` }}
-                    initial={{ height: 0 }}
+                    className={cn(
+                      "w-full rounded-t transition-all",
+                      value >= 70 ? "bg-green-500" : 
+                      value >= 40 ? "bg-yellow-500" : 
+                      "bg-red-500"
+                    )}
+                    style={{ height: 0 }}
                     animate={{ height: `${value}%` }}
-                    transition={{ duration: 1, delay: i * 0.1 }}
+                    transition={{ duration: 0.8, delay: i * 0.1 }}
                   />
                   <span className="text-xs mt-1 text-white/60">
-                    {format(new Date(dates[i]), 'E')}
+                    {format(new Date(dates[i]), 'EEE')}
                   </span>
                 </div>
               ))}
@@ -297,8 +347,13 @@ export function DailyEssentialsAnalytics() {
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-2">
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
+            <motion.div 
+              className="grid grid-cols-2 gap-3"
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+            >
+              <motion.div className="space-y-2" variants={itemVariants}>
                 <div className="flex justify-between items-center">
                   <span className="text-xs text-white/70 flex items-center">
                     <div className="w-2 h-2 rounded-full bg-green-400 mr-1.5" />
@@ -313,8 +368,8 @@ export function DailyEssentialsAnalytics() {
                   </span>
                   <span className="text-xs font-medium">{todayStats.partial}</span>
                 </div>
-              </div>
-              <div className="space-y-2">
+              </motion.div>
+              <motion.div className="space-y-2" variants={itemVariants}>
                 <div className="flex justify-between items-center">
                   <span className="text-xs text-white/70 flex items-center">
                     <div className="w-2 h-2 rounded-full bg-red-400 mr-1.5" />
@@ -329,8 +384,17 @@ export function DailyEssentialsAnalytics() {
                   </span>
                   <span className="text-xs font-medium">{todayStats.skipped}</span>
                 </div>
-              </div>
-            </div>
+              </motion.div>
+              <motion.div className="col-span-2 mt-2" variants={itemVariants}>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-white/70 flex items-center">
+                    <div className="w-2 h-2 rounded-full bg-white/30 mr-1.5" />
+                    Not Set
+                  </span>
+                  <span className="text-xs font-medium">{todayStats.notSet}</span>
+                </div>
+              </motion.div>
+            </motion.div>
           </CardContent>
         </Card>
       </motion.div>

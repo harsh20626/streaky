@@ -9,7 +9,6 @@ import {
   Timer, 
   History,
   LineChart,
-  BarChart3,
   ListTodo,
   MoonStar,
   BookText,
@@ -19,6 +18,7 @@ import {
 import { useTodo } from "@/contexts/TodoContext";
 import { cn } from "@/lib/utils";
 import { OnboardingGuide } from "@/components/OnboardingGuide";
+import { motion, AnimatePresence } from "framer-motion";
 
 export function AppLayout() {
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -46,174 +46,337 @@ export function AppLayout() {
     setActiveTab(tab);
   };
 
+  // Animation variants for sidebar elements
+  const sidebarItemVariants = {
+    open: { opacity: 1, x: 0 },
+    closed: { opacity: sidebarOpen ? 0 : 1, x: sidebarOpen ? -20 : 0 }
+  };
+
   return (
     <div className="min-h-screen flex">
       {/* Onboarding Guide for new users */}
       <OnboardingGuide />
       
       {/* Sidebar */}
-      <aside 
-        className={cn(
-          "fixed inset-y-0 left-0 z-50 bg-sidebar border-r border-sidebar-border transition-all duration-300 shadow-lg",
-          sidebarOpen ? "w-64" : "w-16"
-        )}
+      <motion.aside 
+        initial={{ width: sidebarOpen ? "16rem" : "4rem" }}
+        animate={{ width: sidebarOpen ? "16rem" : "4rem" }}
+        transition={{ duration: 0.3, ease: "easeInOut" }}
+        className="fixed inset-y-0 left-0 z-50 bg-sidebar border-r border-sidebar-border shadow-lg"
       >
-        <div className="p-4 flex items-center justify-between">
-          <div className={cn("flex items-center gap-2", !sidebarOpen && "hidden")}>
-            <BookText className="h-5 w-5 text-white" />
-            <h1 className="text-lg font-bold text-gradient-primary">Streaky</h1>
-          </div>
-          <button 
+        <motion.div className="p-4 flex items-center justify-between">
+          <AnimatePresence>
+            {sidebarOpen && (
+              <motion.div 
+                className="flex items-center gap-2"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.2 }}
+              >
+                <BookText className="h-5 w-5 text-white" />
+                <h1 className="text-lg font-bold text-gradient-primary">Streaky</h1>
+              </motion.div>
+            )}
+          </AnimatePresence>
+          <motion.button 
             onClick={() => setSidebarOpen(!sidebarOpen)}
             className="rounded-md p-2 hover:bg-sidebar-accent transition-colors"
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
           >
             <Menu className="h-5 w-5 text-sidebar-foreground" />
-          </button>
-        </div>
+          </motion.button>
+        </motion.div>
 
         <nav className="px-2 py-4 h-[calc(100vh-80px)] flex flex-col justify-between overflow-y-auto scrollbar-transparent">
           <div>
             <div className="mb-4 px-3">
-              <h2 className={cn("text-xs uppercase text-sidebar-foreground/50 font-medium mb-2", !sidebarOpen && "sr-only")}>
-                Main
-              </h2>
+              <AnimatePresence>
+                {sidebarOpen && (
+                  <motion.h2 
+                    className="text-xs uppercase text-sidebar-foreground/50 font-medium mb-2"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                  >
+                    Main
+                  </motion.h2>
+                )}
+              </AnimatePresence>
               <ul className="space-y-1">
                 <li>
-                  <button
+                  <motion.button
                     onClick={() => handleTabChange("dashboard")}
                     className={cn(
                       "w-full flex items-center gap-3 px-3 py-2 rounded-md text-sidebar-foreground hover:bg-sidebar-accent transition-colors",
                       activeTab === "dashboard" && "bg-white/10 text-white"
                     )}
+                    whileHover={{ backgroundColor: "rgba(255, 255, 255, 0.15)" }}
+                    whileTap={{ scale: 0.97 }}
                   >
-                    <LayoutDashboard className={cn("h-5 w-5", !sidebarOpen && "mx-auto")} />
-                    {sidebarOpen && <span>Dashboard</span>}
-                  </button>
+                    <LayoutDashboard className="h-5 w-5 text-white" />
+                    <AnimatePresence>
+                      {sidebarOpen && (
+                        <motion.span
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: -10 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          Dashboard
+                        </motion.span>
+                      )}
+                    </AnimatePresence>
+                  </motion.button>
                 </li>
                 <li>
-                  <button
+                  <motion.button
                     onClick={() => handleTabChange("today")}
                     className={cn(
                       "w-full flex items-center gap-3 px-3 py-2 rounded-md text-sidebar-foreground hover:bg-sidebar-accent transition-colors",
                       activeTab === "today" && "bg-white/10 text-white"
                     )}
+                    whileHover={{ backgroundColor: "rgba(255, 255, 255, 0.15)" }}
+                    whileTap={{ scale: 0.97 }}
                   >
-                    <CheckCircle2 className={cn("h-5 w-5", !sidebarOpen && "mx-auto")} />
-                    {sidebarOpen && <span>Todo List</span>}
-                  </button>
+                    <CheckCircle2 className="h-5 w-5 text-white" />
+                    <AnimatePresence>
+                      {sidebarOpen && (
+                        <motion.span
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: -10 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          Todo List
+                        </motion.span>
+                      )}
+                    </AnimatePresence>
+                  </motion.button>
                 </li>
                 <li>
-                  <button
+                  <motion.button
                     onClick={() => handleTabChange("essentials")}
                     className={cn(
                       "w-full flex items-center gap-3 px-3 py-2 rounded-md text-sidebar-foreground hover:bg-sidebar-accent transition-colors",
                       activeTab === "essentials" && "bg-white/10 text-white"
                     )}
+                    whileHover={{ backgroundColor: "rgba(255, 255, 255, 0.15)" }}
+                    whileTap={{ scale: 0.97 }}
                   >
-                    <ListTodo className={cn("h-5 w-5", !sidebarOpen && "mx-auto")} />
-                    {sidebarOpen && <span>Daily Essentials</span>}
-                  </button>
+                    <ListTodo className="h-5 w-5 text-white" />
+                    <AnimatePresence>
+                      {sidebarOpen && (
+                        <motion.span
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: -10 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          Daily Essentials
+                        </motion.span>
+                      )}
+                    </AnimatePresence>
+                  </motion.button>
                 </li>
                 <li>
-                  <button
+                  <motion.button
                     onClick={() => handleTabChange("essentials-analytics")}
                     className={cn(
                       "w-full flex items-center gap-3 px-3 py-2 rounded-md text-sidebar-foreground hover:bg-sidebar-accent transition-colors",
                       activeTab === "essentials-analytics" && "bg-white/10 text-white"
                     )}
+                    whileHover={{ backgroundColor: "rgba(255, 255, 255, 0.15)" }}
+                    whileTap={{ scale: 0.97 }}
                   >
-                    <Calendar className={cn("h-5 w-5", !sidebarOpen && "mx-auto")} />
-                    {sidebarOpen && <span>Essentials Analytics</span>}
-                  </button>
+                    <Calendar className="h-5 w-5 text-white" />
+                    <AnimatePresence>
+                      {sidebarOpen && (
+                        <motion.span
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: -10 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          Essentials Analytics
+                        </motion.span>
+                      )}
+                    </AnimatePresence>
+                  </motion.button>
                 </li>
               </ul>
             </div>
             
             <div className="mb-4 px-3">
-              <h2 className={cn("text-xs uppercase text-sidebar-foreground/50 font-medium mb-2", !sidebarOpen && "sr-only")}>
-                Tools
-              </h2>
+              <AnimatePresence>
+                {sidebarOpen && (
+                  <motion.h2 
+                    className="text-xs uppercase text-sidebar-foreground/50 font-medium mb-2"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                  >
+                    Tools
+                  </motion.h2>
+                )}
+              </AnimatePresence>
               <ul className="space-y-1">
                 <li>
-                  <button
+                  <motion.button
                     onClick={() => handleTabChange("analytics")}
                     className={cn(
                       "w-full flex items-center gap-3 px-3 py-2 rounded-md text-sidebar-foreground hover:bg-sidebar-accent transition-colors",
                       activeTab === "analytics" && "bg-white/10 text-white"
                     )}
+                    whileHover={{ backgroundColor: "rgba(255, 255, 255, 0.15)" }}
+                    whileTap={{ scale: 0.97 }}
                   >
-                    <LineChart className={cn("h-5 w-5", !sidebarOpen && "mx-auto")} />
-                    {sidebarOpen && <span>Task Analytics</span>}
-                  </button>
+                    <LineChart className="h-5 w-5 text-white" />
+                    <AnimatePresence>
+                      {sidebarOpen && (
+                        <motion.span
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: -10 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          Task Analytics
+                        </motion.span>
+                      )}
+                    </AnimatePresence>
+                  </motion.button>
                 </li>
                 <li>
-                  <button
+                  <motion.button
                     onClick={() => handleTabChange("pomodoro")}
                     className={cn(
                       "w-full flex items-center gap-3 px-3 py-2 rounded-md text-sidebar-foreground hover:bg-sidebar-accent transition-colors",
                       activeTab === "pomodoro" && "bg-white/10 text-white"
                     )}
+                    whileHover={{ backgroundColor: "rgba(255, 255, 255, 0.15)" }}
+                    whileTap={{ scale: 0.97 }}
                   >
-                    <Timer className={cn("h-5 w-5", !sidebarOpen && "mx-auto")} />
-                    {sidebarOpen && <span>Focus Timer</span>}
-                  </button>
+                    <Timer className="h-5 w-5 text-white" />
+                    <AnimatePresence>
+                      {sidebarOpen && (
+                        <motion.span
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: -10 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          Focus Timer
+                        </motion.span>
+                      )}
+                    </AnimatePresence>
+                  </motion.button>
                 </li>
                 <li>
-                  <button
+                  <motion.button
                     onClick={() => handleTabChange("journal")}
                     className={cn(
                       "w-full flex items-center gap-3 px-3 py-2 rounded-md text-sidebar-foreground hover:bg-sidebar-accent transition-colors",
                       activeTab === "journal" && "bg-white/10 text-white"
                     )}
+                    whileHover={{ backgroundColor: "rgba(255, 255, 255, 0.15)" }}
+                    whileTap={{ scale: 0.97 }}
                   >
-                    <MoonStar className={cn("h-5 w-5", !sidebarOpen && "mx-auto")} />
-                    {sidebarOpen && <span>Journal</span>}
-                  </button>
+                    <MoonStar className="h-5 w-5 text-white" />
+                    <AnimatePresence>
+                      {sidebarOpen && (
+                        <motion.span
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: -10 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          Journal
+                        </motion.span>
+                      )}
+                    </AnimatePresence>
+                  </motion.button>
                 </li>
                 <li>
-                  <button
+                  <motion.button
                     onClick={() => handleTabChange("history")}
                     className={cn(
                       "w-full flex items-center gap-3 px-3 py-2 rounded-md text-sidebar-foreground hover:bg-sidebar-accent transition-colors",
                       activeTab === "history" && "bg-white/10 text-white"
                     )}
+                    whileHover={{ backgroundColor: "rgba(255, 255, 255, 0.15)" }}
+                    whileTap={{ scale: 0.97 }}
                   >
-                    <History className={cn("h-5 w-5", !sidebarOpen && "mx-auto")} />
-                    {sidebarOpen && <span>History</span>}
-                  </button>
+                    <History className="h-5 w-5 text-white" />
+                    <AnimatePresence>
+                      {sidebarOpen && (
+                        <motion.span
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: -10 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          History
+                        </motion.span>
+                      )}
+                    </AnimatePresence>
+                  </motion.button>
                 </li>
               </ul>
             </div>
           </div>
 
-          <div className="mt-auto px-3">
+          <AnimatePresence>
             {sidebarOpen && (
-              <div className="py-2 px-3 bg-white/5 rounded-md text-xs text-white/70">
-                <div className="flex justify-between mb-1">
-                  <span>Today's Progress</span>
-                  <span>{completionRate}%</span>
+              <motion.div 
+                className="mt-auto px-3"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                transition={{ duration: 0.3 }}
+              >
+                <div className="py-2 px-3 bg-white/5 rounded-md text-xs text-white/70">
+                  <div className="flex justify-between mb-1">
+                    <span>Today's Progress</span>
+                    <span>{completionRate}%</span>
+                  </div>
+                  <div className="w-full bg-white/10 rounded-full h-1.5">
+                    <div 
+                      className="bg-white h-1.5 rounded-full transition-all duration-1000 ease-in-out" 
+                      style={{ width: `${completionRate}%` }}
+                    ></div>
+                  </div>
                 </div>
-                <div className="w-full bg-white/10 rounded-full h-1.5">
-                  <div 
-                    className="bg-white h-1.5 rounded-full" 
-                    style={{ width: `${completionRate}%` }}
-                  ></div>
-                </div>
-              </div>
+              </motion.div>
             )}
-          </div>
+          </AnimatePresence>
         </nav>
-      </aside>
+      </motion.aside>
 
       {/* Main content */}
-      <div className={cn(
-        "flex-1 transition-all duration-300 bg-todo-dark",
-        sidebarOpen ? "ml-64" : "ml-16"
-      )}>
-        <header className="py-6 px-4 sm:px-6 md:px-8 border-b border-white/5">
+      <motion.div 
+        className={cn(
+          "flex-1 bg-todo-dark",
+        )}
+        initial={{ marginLeft: sidebarOpen ? "16rem" : "4rem" }}
+        animate={{ marginLeft: sidebarOpen ? "16rem" : "4rem" }}
+        transition={{ duration: 0.3, ease: "easeInOut" }}
+      >
+        <motion.header 
+          className="py-6 px-4 sm:px-6 md:px-8 border-b border-white/5"
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+        >
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-xl font-bold text-white">
+              <motion.h1 
+                className="text-xl font-bold text-white"
+                key={activeTab}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.3 }}
+              >
                 {activeTab === "dashboard" && "Dashboard"}
                 {activeTab === "today" && "Todo List"}
                 {activeTab === "essentials" && "Daily Essentials"}
@@ -222,7 +385,7 @@ export function AppLayout() {
                 {activeTab === "pomodoro" && "Focus Timer"}
                 {activeTab === "journal" && "Journal"}
                 {activeTab === "history" && "History"}
-              </h1>
+              </motion.h1>
               <p className="text-sm text-white/60">{formattedDate} • {formattedTime}</p>
             </div>
             <div className="flex items-center gap-2">
@@ -230,17 +393,21 @@ export function AppLayout() {
                 <p className="text-sm font-medium text-white">{completedToday}/{totalTasks} tasks</p>
                 <p className="text-xs text-white/60">Today's progress</p>
               </div>
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10">
-                <BarChart3 className="h-5 w-5 text-white" />
-              </div>
+              <motion.div 
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10"
+                whileHover={{ scale: 1.1, backgroundColor: "rgba(255, 255, 255, 0.15)" }}
+                whileTap={{ scale: 0.9 }}
+              >
+                <PieChart className="h-5 w-5 text-white" />
+              </motion.div>
             </div>
           </div>
-        </header>
+        </motion.header>
 
         <main className="flex-1 container max-w-6xl px-4 sm:px-6 py-6 overflow-y-auto scrollbar-transparent">
           <Dashboard activeTab={activeTab} onTabChange={setActiveTab} />
         </main>
-      </div>
+      </motion.div>
     </div>
   );
 }

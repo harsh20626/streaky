@@ -107,19 +107,19 @@ export function Dashboard({ activeTab = "dashboard", onTabChange }: DashboardPro
               </Card>
             </motion.div>
             
-            {/* Quick Actions Grid */}
+            {/* Quick Actions Grid - Cleaner, more organized */}
             <motion.div
               variants={itemVariants}
               className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
             >
-              <Card className="bg-sidebar/20 border-white/5 hover:bg-sidebar/30 transition-colors group">
+              <Card className="bg-gradient-to-br from-purple-900/30 to-purple-900/10 border-white/5 hover:bg-sidebar/30 transition-colors group">
                 <CardContent className="p-6 flex justify-between items-center">
                   <div>
                     <h3 className="font-medium mb-1">My Tasks</h3>
                     <p className="text-sm text-white/60">Manage your todo list</p>
                   </div>
-                  <div className="h-12 w-12 rounded-md bg-sidebar flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <CheckSquare className="h-6 w-6 text-white" />
+                  <div className="h-12 w-12 rounded-md bg-purple-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <CheckSquare className="h-6 w-6 text-purple-300" />
                   </div>
                 </CardContent>
                 <div className="px-6 pb-4">
@@ -134,14 +134,14 @@ export function Dashboard({ activeTab = "dashboard", onTabChange }: DashboardPro
                 </div>
               </Card>
               
-              <Card className="bg-sidebar/20 border-white/5 hover:bg-sidebar/30 transition-colors group">
+              <Card className="bg-gradient-to-br from-blue-900/30 to-blue-900/10 border-white/5 hover:bg-sidebar/30 transition-colors group">
                 <CardContent className="p-6 flex justify-between items-center">
                   <div>
                     <h3 className="font-medium mb-1">Daily Essentials</h3>
                     <p className="text-sm text-white/60">Track your daily habits</p>
                   </div>
-                  <div className="h-12 w-12 rounded-md bg-sidebar flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <Calendar className="h-6 w-6 text-white" />
+                  <div className="h-12 w-12 rounded-md bg-blue-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <Calendar className="h-6 w-6 text-blue-300" />
                   </div>
                 </CardContent>
                 <div className="px-6 pb-4">
@@ -156,14 +156,14 @@ export function Dashboard({ activeTab = "dashboard", onTabChange }: DashboardPro
                 </div>
               </Card>
               
-              <Card className="bg-sidebar/20 border-white/5 hover:bg-sidebar/30 transition-colors group">
+              <Card className="bg-gradient-to-br from-green-900/30 to-green-900/10 border-white/5 hover:bg-sidebar/30 transition-colors group">
                 <CardContent className="p-6 flex justify-between items-center">
                   <div>
                     <h3 className="font-medium mb-1">Task Analytics</h3>
                     <p className="text-sm text-white/60">See your task progress</p>
                   </div>
-                  <div className="h-12 w-12 rounded-md bg-sidebar flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <BarChart3 className="h-6 w-6 text-white" />
+                  <div className="h-12 w-12 rounded-md bg-green-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <BarChart3 className="h-6 w-6 text-green-300" />
                   </div>
                 </CardContent>
                 <div className="px-6 pb-4">
@@ -178,14 +178,14 @@ export function Dashboard({ activeTab = "dashboard", onTabChange }: DashboardPro
                 </div>
               </Card>
               
-              <Card className="bg-sidebar/20 border-white/5 hover:bg-sidebar/30 transition-colors group">
+              <Card className="bg-gradient-to-br from-orange-900/30 to-orange-900/10 border-white/5 hover:bg-sidebar/30 transition-colors group">
                 <CardContent className="p-6 flex justify-between items-center">
                   <div>
                     <h3 className="font-medium mb-1">Habits Analytics</h3>
                     <p className="text-sm text-white/60">Track your habit progress</p>
                   </div>
-                  <div className="h-12 w-12 rounded-md bg-sidebar flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <PieChart className="h-6 w-6 text-white" />
+                  <div className="h-12 w-12 rounded-md bg-orange-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <PieChart className="h-6 w-6 text-orange-300" />
                   </div>
                 </CardContent>
                 <div className="px-6 pb-4">
@@ -200,10 +200,10 @@ export function Dashboard({ activeTab = "dashboard", onTabChange }: DashboardPro
                 </div>
               </Card>
             </motion.div>
-          
-            {/* Main Dashboard Content */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-              <motion.div variants={itemVariants} className="lg:col-span-2">
+            
+            {/* Main Dashboard Content - More minimal and focused */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <motion.div variants={itemVariants}>
                 <ProductivityDashboard />
               </motion.div>
               <motion.div variants={itemVariants}>
