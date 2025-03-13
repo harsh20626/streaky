@@ -1,3 +1,4 @@
+
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { TodoList } from "@/components/TodoList";
 import { TaskAnalytics } from "@/components/TaskAnalytics";
@@ -6,13 +7,23 @@ import { PomodoroTimer } from "@/components/PomodoroTimer";
 import { Journal } from "@/components/Journal";
 import { DailyEssentialsTable } from "@/components/DailyEssentials/DailyEssentialsTable";
 import { DailyEssentialsAnalytics } from "@/components/DailyEssentials/DailyEssentialsAnalytics";
-import { DailyEssentialsDetailedAnalytics } from "@/components/DailyEssentials/DailyEssentialsDetailedAnalytics";
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, BarChart3, CheckSquare, PieChart, Calendar, Award, Zap, Clock } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { 
+  ArrowRight, 
+  CheckCircle, 
+  Calendar, 
+  Flame, 
+  Clock, 
+  FileText, 
+  BarChart3, 
+  ListTodo,
+  Award
+} from "lucide-react";
+import { useTodo } from "@/contexts/TodoContext";
+import { Card, CardContent } from "@/components/ui/card";
+import { OnboardingGuide } from "@/components/OnboardingGuide";
 
 interface DashboardProps {
   activeTab?: string;
@@ -21,7 +32,19 @@ interface DashboardProps {
 
 export function Dashboard({ activeTab = "dashboard", onTabChange }: DashboardProps) {
   const [greeting, setGreeting] = useState("");
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const { todos, analytics } = useTodo();
   
+  // Check if it's the first visit
+  useEffect(() => {
+    const hasVisited = localStorage.getItem('hasVisitedBefore');
+    if (!hasVisited) {
+      setShowOnboarding(true);
+      localStorage.setItem('hasVisitedBefore', 'true');
+    }
+  }, []);
+  
+  // Set greeting based on time of day
   useEffect(() => {
     const getTimeBasedGreeting = () => {
       const hour = new Date().getHours();
@@ -54,13 +77,21 @@ export function Dashboard({ activeTab = "dashboard", onTabChange }: DashboardPro
     }
   };
   
+  const handleCloseOnboarding = () => {
+    setShowOnboarding(false);
+  };
+  
+  // Get real data for dashboard
+  const completedToday = todos.filter(todo => todo.completed).length;
+  const pendingToday = todos.filter(todo => !todo.completed).length;
+  
   // Animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.15
+        staggerChildren: 0.1
       }
     }
   };
@@ -71,13 +102,15 @@ export function Dashboard({ activeTab = "dashboard", onTabChange }: DashboardPro
       y: 0,
       opacity: 1,
       transition: {
-        duration: 0.5
+        duration: 0.4
       }
     }
   };
   
   return (
     <div className="space-y-4">
+      {showOnboarding && <OnboardingGuide onClose={handleCloseOnboarding} />}
+      
       <Tabs 
         defaultValue="dashboard" 
         value={activeTab} 
@@ -92,209 +125,308 @@ export function Dashboard({ activeTab = "dashboard", onTabChange }: DashboardPro
             className="space-y-6"
           >
             {/* Welcome Card */}
-            <motion.div variants={itemVariants}>
-              <Card className="bg-gradient-to-br from-purple-900/40 to-blue-900/20 border-white/5 overflow-hidden relative">
+            <motion.div 
+              variants={itemVariants}
+              className="relative overflow-hidden"
+            >
+              <Card className="bg-gradient-to-br from-indigo-900/50 via-purple-900/40 to-pink-900/30 border-white/5 overflow-hidden">
                 <div 
-                  className="absolute top-0 right-0 w-80 h-80 bg-purple-500/20 rounded-full -mt-20 -mr-20 opacity-30 blur-3xl"
+                  className="absolute top-0 right-0 w-96 h-96 bg-blue-500/10 rounded-full -mt-20 -mr-20 opacity-30 blur-3xl"
+                  aria-hidden="true"
+                />
+                <div 
+                  className="absolute bottom-0 left-0 w-96 h-96 bg-purple-500/10 rounded-full -mb-20 -ml-20 opacity-30 blur-3xl"
                   aria-hidden="true"
                 />
                 <CardContent className="pt-8 pb-8">
-                  <h1 className="text-4xl font-bold text-gradient-primary mb-2">{greeting}</h1>
-                  <p className="text-white/70 max-w-lg">Here's a quick overview of your productivity. Access detailed analytics using the cards below.</p>
+                  <motion.h1 
+                    className="text-4xl font-bold bg-gradient-to-r from-white via-white/90 to-white/60 bg-clip-text text-transparent mb-2"
+                    initial={{ y: -20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 0.2, duration: 0.5 }}
+                  >
+                    {greeting}
+                  </motion.h1>
+                  <motion.p 
+                    className="text-white/70 max-w-lg"
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 0.3, duration: 0.5 }}
+                  >
+                    Track your habits and tasks with Streaky. Focus on consistency to build lasting growth.
+                  </motion.p>
                 </CardContent>
               </Card>
             </motion.div>
             
-            {/* Grid of Colorful Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {/* Card 1 - Tasks */}
+            {/* Grid of Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {/* Card 1 - Daily Tasks */}
               <motion.div 
                 variants={itemVariants}
                 whileHover={{ y: -5, transition: { duration: 0.2 } }}
+                className="col-span-1"
               >
-                <Card className="bg-gradient-to-br from-indigo-900/40 to-indigo-600/10 border-white/10 h-full shadow-lg overflow-hidden relative hover:bg-indigo-900/30 transition-colors">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/20 rounded-full -mt-12 -mr-12 opacity-30 blur-2xl" />
-                  <CardHeader className="pb-2">
-                    <div className="flex justify-between items-center">
-                      <CardTitle className="text-white/90 text-lg">Tasks</CardTitle>
-                      <CheckSquare className="h-5 w-5 text-indigo-400" />
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex flex-col justify-between h-full">
-                      <div>
-                        <p className="text-3xl font-bold text-white mb-1">5</p>
-                        <p className="text-white/60 text-sm">pending tasks</p>
-                      </div>
-                      <Button 
-                        className="w-full mt-4 bg-indigo-600/40 hover:bg-indigo-600/60 text-white border-none"
-                        onClick={() => onTabChange && onTabChange("today")}
-                      >
-                        View Tasks
-                        <ArrowRight className="ml-2 h-4 w-4" />
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-              
-              {/* Card 2 - Essentials */}
-              <motion.div 
-                variants={itemVariants}
-                whileHover={{ y: -5, transition: { duration: 0.2 } }}
-              >
-                <Card className="bg-gradient-to-br from-cyan-900/40 to-cyan-600/10 border-white/10 h-full shadow-lg overflow-hidden relative hover:bg-cyan-900/30 transition-colors">
+                <Card className="bg-gradient-to-br from-cyan-900/40 to-cyan-600/20 border-white/10 h-full shadow-lg overflow-hidden relative hover:bg-cyan-900/30 transition-colors">
                   <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/20 rounded-full -mt-12 -mr-12 opacity-30 blur-2xl" />
-                  <CardHeader className="pb-2">
-                    <div className="flex justify-between items-center">
-                      <CardTitle className="text-white/90 text-lg">Daily Habits</CardTitle>
-                      <Calendar className="h-5 w-5 text-cyan-400" />
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex flex-col justify-between h-full">
-                      <div>
-                        <p className="text-3xl font-bold text-white mb-1">70%</p>
-                        <p className="text-white/60 text-sm">completion rate</p>
+                  <CardContent className="p-6">
+                    <div className="flex items-center gap-4 mb-4">
+                      <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-cyan-400/30 to-cyan-600/30 flex items-center justify-center">
+                        <ListTodo className="h-6 w-6 text-cyan-400" />
                       </div>
-                      <Button 
-                        className="w-full mt-4 bg-cyan-600/40 hover:bg-cyan-600/60 text-white border-none"
-                        onClick={() => onTabChange && onTabChange("essentials")}
-                      >
-                        View Habits
-                        <ArrowRight className="ml-2 h-4 w-4" />
-                      </Button>
+                      <div className="flex-1">
+                        <h3 className="font-medium text-white">Daily Tasks</h3>
+                        <p className="text-white/60 text-sm">Plan and track your daily tasks</p>
+                      </div>
                     </div>
+                    
+                    <div className="flex justify-between items-center mb-4">
+                      <div className="flex gap-3">
+                        <div className="text-center">
+                          <p className="text-2xl font-bold text-white">{completedToday}</p>
+                          <p className="text-xs text-white/60">Completed</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-2xl font-bold text-white">{pendingToday}</p>
+                          <p className="text-xs text-white/60">Pending</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <Button 
+                      className="w-full bg-gradient-to-r from-cyan-500/80 to-cyan-700/80 hover:from-cyan-500/90 hover:to-cyan-700/90 text-white shadow-lg"
+                      onClick={() => onTabChange && onTabChange("today")}
+                    >
+                      View Tasks
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
                   </CardContent>
                 </Card>
               </motion.div>
               
-              {/* Card 3 - Task Analytics */}
+              {/* Card 2 - Daily Essentials */}
               <motion.div 
                 variants={itemVariants}
                 whileHover={{ y: -5, transition: { duration: 0.2 } }}
+                className="col-span-1"
               >
-                <Card className="bg-gradient-to-br from-pink-900/40 to-pink-600/10 border-white/10 h-full shadow-lg overflow-hidden relative hover:bg-pink-900/30 transition-colors">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-pink-500/20 rounded-full -mt-12 -mr-12 opacity-30 blur-2xl" />
-                  <CardHeader className="pb-2">
-                    <div className="flex justify-between items-center">
-                      <CardTitle className="text-white/90 text-lg">Task Analytics</CardTitle>
-                      <BarChart3 className="h-5 w-5 text-pink-400" />
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex flex-col justify-between h-full">
-                      <div>
-                        <p className="text-3xl font-bold text-white mb-1">85%</p>
-                        <p className="text-white/60 text-sm">weekly progress</p>
+                <Card className="bg-gradient-to-br from-purple-900/40 to-purple-600/20 border-white/10 h-full shadow-lg overflow-hidden relative hover:bg-purple-900/30 transition-colors">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/20 rounded-full -mt-12 -mr-12 opacity-30 blur-2xl" />
+                  <CardContent className="p-6">
+                    <div className="flex items-center gap-4 mb-4">
+                      <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-purple-400/30 to-purple-600/30 flex items-center justify-center">
+                        <Calendar className="h-6 w-6 text-purple-400" />
                       </div>
-                      <Button 
-                        className="w-full mt-4 bg-pink-600/40 hover:bg-pink-600/60 text-white border-none"
-                        onClick={() => onTabChange && onTabChange("analytics")}
-                      >
-                        View Analytics
-                        <ArrowRight className="ml-2 h-4 w-4" />
-                      </Button>
+                      <div className="flex-1">
+                        <h3 className="font-medium text-white">Daily Essentials</h3>
+                        <p className="text-white/60 text-sm">Track your recurring habits</p>
+                      </div>
                     </div>
+                    
+                    <div className="flex justify-between items-center mb-4">
+                      <div className="flex gap-3">
+                        <div className="text-center">
+                          <p className="text-2xl font-bold text-white">70%</p>
+                          <p className="text-xs text-white/60">Completion</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-2xl font-bold text-white">5</p>
+                          <p className="text-xs text-white/60">Habits</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <Button 
+                      className="w-full bg-gradient-to-r from-purple-500/80 to-purple-700/80 hover:from-purple-500/90 hover:to-purple-700/90 text-white shadow-lg"
+                      onClick={() => onTabChange && onTabChange("essentials")}
+                    >
+                      View Habits
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
                   </CardContent>
                 </Card>
               </motion.div>
               
-              {/* Card 4 - Habit Analytics */}
+              {/* Card 3 - Focus Timer */}
               <motion.div 
                 variants={itemVariants}
                 whileHover={{ y: -5, transition: { duration: 0.2 } }}
+                className="col-span-1"
               >
-                <Card className="bg-gradient-to-br from-amber-900/40 to-amber-600/10 border-white/10 h-full shadow-lg overflow-hidden relative hover:bg-amber-900/30 transition-colors">
+                <Card className="bg-gradient-to-br from-red-900/40 to-red-600/20 border-white/10 h-full shadow-lg overflow-hidden relative hover:bg-red-900/30 transition-colors">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-red-500/20 rounded-full -mt-12 -mr-12 opacity-30 blur-2xl" />
+                  <CardContent className="p-6">
+                    <div className="flex items-center gap-4 mb-4">
+                      <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-red-400/30 to-red-600/30 flex items-center justify-center">
+                        <Clock className="h-6 w-6 text-red-400" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-medium text-white">Focus Timer</h3>
+                        <p className="text-white/60 text-sm">Boost productivity with Pomodoro</p>
+                      </div>
+                    </div>
+                    
+                    <div className="mb-4 text-center">
+                      <p className="text-2xl font-bold text-white">25:00</p>
+                      <p className="text-xs text-white/60">Start a new session</p>
+                    </div>
+                    
+                    <Button 
+                      className="w-full bg-gradient-to-r from-red-500/80 to-red-700/80 hover:from-red-500/90 hover:to-red-700/90 text-white shadow-lg"
+                      onClick={() => onTabChange && onTabChange("pomodoro")}
+                    >
+                      Start Timer
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            </div>
+            
+            {/* Second Row - More Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Card 4 - Current Streak */}
+              <motion.div 
+                variants={itemVariants}
+                whileHover={{ y: -5, transition: { duration: 0.2 } }}
+                className="col-span-1"
+              >
+                <Card className="bg-gradient-to-br from-amber-900/40 to-amber-600/20 border-white/10 h-full shadow-lg overflow-hidden relative hover:bg-amber-900/30 transition-colors">
                   <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/20 rounded-full -mt-12 -mr-12 opacity-30 blur-2xl" />
-                  <CardHeader className="pb-2">
-                    <div className="flex justify-between items-center">
-                      <CardTitle className="text-white/90 text-lg">Habit Analytics</CardTitle>
-                      <PieChart className="h-5 w-5 text-amber-400" />
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex flex-col justify-between h-full">
-                      <div>
-                        <p className="text-3xl font-bold text-white mb-1">76%</p>
-                        <p className="text-white/60 text-sm">habit consistency</p>
-                      </div>
-                      <Button 
-                        className="w-full mt-4 bg-amber-600/40 hover:bg-amber-600/60 text-white border-none"
-                        onClick={() => onTabChange && onTabChange("essentials-analytics")}
-                      >
-                        View Analytics
-                        <ArrowRight className="ml-2 h-4 w-4" />
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            </div>
-
-            {/* Second Row - 2 Wider Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Card 5 - Streak */}
-              <motion.div 
-                variants={itemVariants}
-                whileHover={{ y: -5, transition: { duration: 0.2 } }}
-              >
-                <Card className="bg-gradient-to-br from-green-900/40 to-teal-700/10 border-white/10 shadow-lg overflow-hidden relative hover:bg-green-900/30 transition-colors">
-                  <div className="absolute top-0 right-0 w-40 h-40 bg-green-500/20 rounded-full -mt-20 -mr-20 opacity-20 blur-2xl" />
-                  <CardHeader className="pb-2">
-                    <div className="flex justify-between items-center">
-                      <CardTitle className="text-white/90 text-lg">Productivity Streak</CardTitle>
-                      <Zap className="h-5 w-5 text-green-400" />
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex items-center gap-6">
-                      <div className="bg-green-500/20 h-16 w-16 rounded-full flex items-center justify-center">
-                        <span className="text-2xl font-bold text-white">5</span>
+                  <CardContent className="p-6">
+                    <div className="flex items-center gap-4">
+                      <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-amber-400/30 to-amber-600/30 flex items-center justify-center">
+                        <Flame className="h-6 w-6 text-amber-400" />
                       </div>
                       <div>
-                        <p className="text-white font-medium">5-Day Streak</p>
-                        <p className="text-white/60 text-sm">Keep it going! Your longest streak was 12 days.</p>
+                        <p className="text-2xl font-bold text-white">{analytics.streakCount} days</p>
+                        <p className="text-white/60 text-sm">Current streak</p>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
               </motion.div>
               
-              {/* Card 6 - Pomodoro */}
+              {/* Card 5 - Longest Streak */}
               <motion.div 
                 variants={itemVariants}
                 whileHover={{ y: -5, transition: { duration: 0.2 } }}
+                className="col-span-1"
               >
-                <Card className="bg-gradient-to-br from-rose-900/40 to-red-700/10 border-white/10 shadow-lg overflow-hidden relative hover:bg-rose-900/30 transition-colors">
-                  <div className="absolute top-0 right-0 w-40 h-40 bg-rose-500/20 rounded-full -mt-20 -mr-20 opacity-20 blur-2xl" />
-                  <CardHeader className="pb-2">
-                    <div className="flex justify-between items-center">
-                      <CardTitle className="text-white/90 text-lg">Focus Time</CardTitle>
-                      <Clock className="h-5 w-5 text-rose-400" />
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex items-center gap-6">
-                      <div className="bg-rose-500/20 h-16 w-16 rounded-full flex items-center justify-center">
-                        <span className="text-2xl font-bold text-white">2h</span>
+                <Card className="bg-gradient-to-br from-green-900/40 to-green-600/20 border-white/10 h-full shadow-lg overflow-hidden relative hover:bg-green-900/30 transition-colors">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/20 rounded-full -mt-12 -mr-12 opacity-30 blur-2xl" />
+                  <CardContent className="p-6">
+                    <div className="flex items-center gap-4">
+                      <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-green-400/30 to-green-600/30 flex items-center justify-center">
+                        <Award className="h-6 w-6 text-green-400" />
                       </div>
                       <div>
-                        <p className="text-white font-medium">2 Hours Today</p>
-                        <p className="text-white/60 text-sm">Start a Pomodoro session to increase focus time.</p>
-                        <Button 
-                          className="mt-2 bg-rose-600/40 hover:bg-rose-600/60 text-white border-none"
-                          size="sm"
-                          onClick={() => onTabChange && onTabChange("pomodoro")}
-                        >
-                          Start Session
-                        </Button>
+                        <p className="text-2xl font-bold text-white">{analytics.longestStreak} days</p>
+                        <p className="text-white/60 text-sm">Longest streak</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+              
+              {/* Card 6 - Analytics */}
+              <motion.div 
+                variants={itemVariants}
+                whileHover={{ y: -5, transition: { duration: 0.2 } }}
+                className="col-span-1"
+              >
+                <Card className="bg-gradient-to-br from-blue-900/40 to-blue-600/20 border-white/10 h-full shadow-lg overflow-hidden relative hover:bg-blue-900/30 transition-colors">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/20 rounded-full -mt-12 -mr-12 opacity-30 blur-2xl" />
+                  <CardContent className="p-6">
+                    <div className="flex items-center gap-4">
+                      <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-blue-400/30 to-blue-600/30 flex items-center justify-center">
+                        <BarChart3 className="h-6 w-6 text-blue-400" />
+                      </div>
+                      <div>
+                        <p className="text-lg font-medium text-white">Task Analytics</p>
+                        <p className="text-white/60 text-sm">View your progress</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+              
+              {/* Card 7 - Journal */}
+              <motion.div 
+                variants={itemVariants}
+                whileHover={{ y: -5, transition: { duration: 0.2 } }}
+                className="col-span-1"
+              >
+                <Card className="bg-gradient-to-br from-pink-900/40 to-pink-600/20 border-white/10 h-full shadow-lg overflow-hidden relative hover:bg-pink-900/30 transition-colors">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-pink-500/20 rounded-full -mt-12 -mr-12 opacity-30 blur-2xl" />
+                  <CardContent className="p-6">
+                    <div className="flex items-center gap-4">
+                      <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-pink-400/30 to-pink-600/30 flex items-center justify-center">
+                        <FileText className="h-6 w-6 text-pink-400" />
+                      </div>
+                      <div>
+                        <p className="text-lg font-medium text-white">Journal</p>
+                        <p className="text-white/60 text-sm">Reflect on your day</p>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
               </motion.div>
             </div>
+            
+            {/* Third Row - Quick Access */}
+            <motion.div variants={itemVariants}>
+              <Card className="bg-gradient-to-br from-slate-900/50 to-slate-800/30 border-white/5">
+                <CardContent className="p-6">
+                  <div className="flex flex-wrap gap-3 justify-center sm:justify-between">
+                    <Button
+                      variant="outline"
+                      className="bg-white/5 border-white/10 hover:bg-white/10 text-white"
+                      onClick={() => onTabChange && onTabChange("today")}
+                    >
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                      Tasks
+                    </Button>
+                    
+                    <Button
+                      variant="outline"
+                      className="bg-white/5 border-white/10 hover:bg-white/10 text-white"
+                      onClick={() => onTabChange && onTabChange("essentials")}
+                    >
+                      <Calendar className="h-4 w-4 mr-2" />
+                      Habits
+                    </Button>
+                    
+                    <Button
+                      variant="outline"
+                      className="bg-white/5 border-white/10 hover:bg-white/10 text-white"
+                      onClick={() => onTabChange && onTabChange("pomodoro")}
+                    >
+                      <Clock className="h-4 w-4 mr-2" />
+                      Focus
+                    </Button>
+                    
+                    <Button
+                      variant="outline"
+                      className="bg-white/5 border-white/10 hover:bg-white/10 text-white"
+                      onClick={() => onTabChange && onTabChange("analytics")}
+                    >
+                      <BarChart3 className="h-4 w-4 mr-2" />
+                      Analytics
+                    </Button>
+                    
+                    <Button
+                      variant="outline"
+                      className="bg-white/5 border-white/10 hover:bg-white/10 text-white"
+                      onClick={() => onTabChange && onTabChange("journal")}
+                    >
+                      <FileText className="h-4 w-4 mr-2" />
+                      Journal
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
           </motion.div>
         </TabsContent>
         
@@ -307,7 +439,7 @@ export function Dashboard({ activeTab = "dashboard", onTabChange }: DashboardPro
         </TabsContent>
         
         <TabsContent value="essentials-analytics" className="focus-visible:outline-none">
-          <DailyEssentialsDetailedAnalytics />
+          <DailyEssentialsAnalytics />
         </TabsContent>
         
         <TabsContent value="pomodoro" className="focus-visible:outline-none">
