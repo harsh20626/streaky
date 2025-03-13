@@ -6,9 +6,11 @@ import { AuthProvider } from "@/contexts/AuthContext";
 
 const Index = () => {
   return (
-    <PomodoroProvider>
-      <AppLayout />
-    </PomodoroProvider>
+    <TodoProvider>
+      <PomodoroProvider>
+        <AppLayout />
+      </PomodoroProvider>
+    </TodoProvider>
   );
 };
 

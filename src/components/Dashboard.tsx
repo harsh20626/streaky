@@ -6,6 +6,7 @@ import { TaskHistory } from "@/components/TaskHistory";
 import { PomodoroTimer } from "@/components/PomodoroTimer";
 import { Journal } from "@/components/Journal";
 import { DailyEssentialsTable } from "@/components/DailyEssentials/DailyEssentialsTable";
+import { DailyEssentialsAnalytics } from "@/components/DailyEssentials/DailyEssentialsAnalytics";
 import { useState, useEffect } from "react";
 import { ProductivityDashboard } from "./ProductivityDashboard";
 
@@ -58,7 +59,14 @@ export function Dashboard({ activeTab = "dashboard", onTabChange }: DashboardPro
         className="w-full animate-fade-in"
       >
         <TabsContent value="dashboard" className="focus-visible:outline-none">
-          <ProductivityDashboard />
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div className="lg:col-span-2">
+              <ProductivityDashboard />
+            </div>
+            <div>
+              <DailyEssentialsAnalytics />
+            </div>
+          </div>
         </TabsContent>
         
         <TabsContent value="today" className="focus-visible:outline-none">
