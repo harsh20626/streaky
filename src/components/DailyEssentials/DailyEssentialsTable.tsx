@@ -1,65 +1,131 @@
-
 import { useState, useEffect } from "react";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { PlusIcon, Trash2, ChevronLeft, ChevronRight, Calendar as CalendarIcon } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { format, addWeeks, subWeeks, startOfWeek, endOfWeek } from "date-fns";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { motion, AnimatePresence } from "framer-motion";
+import { Plus, Save, CalendarDays, ChevronLeft, ChevronRight, Check, X, AlertCircle } from "lucide-react";
+import { format, subDays, addDays, startOfWeek, endOfWeek, isToday, eachDayOfInterval, isSameDay } from "date-fns";
+import { cn } from "@/lib/utils";
+import { useToast } from "@/components/ui/use-toast";
+
+type Status = "Done" | "Partial" | "Skipped" | "Not Done" | "";
 
 interface EssentialTask {
   id: string;
   name: string;
-  statuses: Record<string, string>;
+  statuses: Record<string, Status>;
 }
 
-const generateDates = (startDate: Date, daysBack = 3, daysForward = 3): string[] => {
-  const dates: string[] = [];
-  const today = startDate;
-  
-  for (let i = daysBack; i > 0; i--) {
-    const date = new Date(today);
-    date.setDate(today.getDate() - i);
-    dates.push(date.toISOString().split('T')[0]);
-  }
-  
-  dates.push(today.toISOString().split('T')[0]);
-  
-  for (let i = 1; i <= daysForward; i++) {
-    const date = new Date(today);
-    date.setDate(today.getDate() + i);
-    dates.push(date.toISOString().split('T')[0]);
-  }
-  
-  return dates;
-};
-
-const formatDateDisplay = (dateString: string): string => {
-  const date = new Date(dateString);
-  return `${date.getDate()}/${date.getMonth() + 1}`;
-};
-
-const isToday = (dateString: string): boolean => {
-  const today = new Date().toISOString().split('T')[0];
-  return dateString === today;
+const statusStyles: Record<Status, string> = {
+  "Done": "bg-gradient-to-r from-green-500/90 to-green-400/90 text-white",
+  "Partial": "bg-gradient-to-r from-yellow-500/90 to-amber-400/90 text-white",
+  "Skipped": "bg-gradient-to-r from-blue-500/90 to-sky-400/90 text-white",
+  "Not Done": "bg-gradient-to-r from-red-500/90 to-rose-400/90 text-white",
+  "": "bg-secondary text-white/60"
 };
 
 export function DailyEssentialsTable() {
   const [tasks, setTasks] = useState<EssentialTask[]>([]);
   const [newTaskName, setNewTaskName] = useState("");
-  const [selectedWeek, setSelectedWeek] = useState(new Date());
-  const [dates, setDates] = useState<string[]>(generateDates(new Date()));
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [isAddingTask, setIsAddingTask] = useState(false);
   const { toast } = useToast();
+
+  const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
+  const weekEnd = endOfWeek(currentDate, { weekStartsOn: 1 });
+  const weekDates = eachDayOfInterval({ start: weekStart, end: weekEnd });
   
-  // Animation variants
+  const weekRangeText = `${format(weekStart, 'MMM d')} - ${format(weekEnd, 'MMM d, yyyy')}`;
+  
+  const isCurrentWeek = isSameDay(weekStart, startOfWeek(new Date(), { weekStartsOn: 1 }));
+  
+  const goToPreviousWeek = () => {
+    setCurrentDate(subDays(weekStart, 7));
+  };
+  
+  const goToNextWeek = () => {
+    if (!isCurrentWeek) {
+      setCurrentDate(addDays(weekStart, 7));
+    }
+  };
+  
+  const goToCurrentWeek = () => {
+    setCurrentDate(new Date());
+  };
+
+  useEffect(() => {
+    try {
+      const savedTasks = localStorage.getItem("dailyEssentialTasks");
+      if (savedTasks) {
+        setTasks(JSON.parse(savedTasks));
+      }
+    } catch (error) {
+      console.error("Error loading tasks:", error);
+    }
+  }, []);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("dailyEssentialTasks", JSON.stringify(tasks));
+    } catch (error) {
+      console.error("Error saving tasks:", error);
+    }
+  }, [tasks]);
+
+  const addTask = () => {
+    if (newTaskName.trim() === "") return;
+    
+    const newTask: EssentialTask = {
+      id: Date.now().toString(),
+      name: newTaskName.trim(),
+      statuses: {}
+    };
+    
+    setTasks([...tasks, newTask]);
+    setNewTaskName("");
+    setIsAddingTask(false);
+    
+    toast({
+      title: "Task added",
+      description: `"${newTaskName.trim()}" has been added to your daily essentials.`,
+    });
+  };
+
+  const deleteTask = (id: string) => {
+    setTasks(tasks.filter(task => task.id !== id));
+    
+    toast({
+      title: "Task removed",
+      description: "The task has been removed from your daily essentials.",
+    });
+  };
+
+  const updateTaskStatus = (taskId: string, date: string, status: Status) => {
+    setTasks(tasks.map(task => {
+      if (task.id === taskId) {
+        const updatedStatuses = { ...task.statuses };
+        
+        if (status === "") {
+          delete updatedStatuses[date];
+        } else {
+          updatedStatuses[date] = status;
+        }
+        
+        return {
+          ...task,
+          statuses: updatedStatuses
+        };
+      }
+      return task;
+    }));
+  };
+
+  const getStatus = (task: EssentialTask, date: string): Status => {
+    return task.statuses[date] || "";
+  };
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -71,336 +137,271 @@ export function DailyEssentialsTable() {
   };
   
   const itemVariants = {
-    hidden: { y: 10, opacity: 0 },
+    hidden: { y: 20, opacity: 0 },
     visible: {
       y: 0,
       opacity: 1,
-      transition: { duration: 0.3 }
-    }
-  };
-  
-  // Update dates when selected week changes
-  useEffect(() => {
-    const weekStart = startOfWeek(selectedWeek, { weekStartsOn: 0 }); // Ensure week starts on Sunday
-    const newDates = generateDates(weekStart, 0, 6);
-    setDates(newDates);
-  }, [selectedWeek]);
-  
-  // Update dates at midnight (for date changing)
-  useEffect(() => {
-    // Initial load of tasks
-    try {
-      const savedTasks = localStorage.getItem("dailyEssentialTasks");
-      if (savedTasks) {
-        setTasks(JSON.parse(savedTasks));
+      transition: {
+        duration: 0.3
       }
-    } catch (error) {
-      console.error("Error loading tasks:", error);
-    }
-    
-    // Set up timer to update dates at midnight
-    const checkForDateChange = () => {
-      const newDates = generateDates(new Date());
-      const currentToday = new Date().toISOString().split('T')[0];
-      
-      // If the day has changed, update our dates and add new status slots
-      if (!dates.includes(currentToday)) {
-        setDates(newDates);
-        
-        // Update all tasks to include the new dates
-        setTasks(prevTasks => {
-          return prevTasks.map(task => {
-            const updatedStatuses = { ...task.statuses };
-            
-            // Add empty status slots for any new dates
-            newDates.forEach(date => {
-              if (!updatedStatuses[date]) {
-                updatedStatuses[date] = "";
-              }
-            });
-            
-            return {
-              ...task,
-              statuses: updatedStatuses
-            };
-          });
-        });
-      }
-    };
-    
-    // Check immediately
-    checkForDateChange();
-    
-    // Set up interval to check for date change - check every hour
-    const interval = setInterval(checkForDateChange, 1000 * 60 * 60);
-    
-    return () => clearInterval(interval);
-  }, [dates]);
-  
-  // Save tasks to localStorage whenever they change
-  useEffect(() => {
-    try {
-      localStorage.setItem("dailyEssentialTasks", JSON.stringify(tasks));
-    } catch (error) {
-      console.error("Error saving tasks:", error);
-    }
-  }, [tasks]);
-  
-  const addTask = () => {
-    if (!newTaskName.trim()) return;
-    
-    const statuses: Record<string, string> = {};
-    dates.forEach(date => {
-      statuses[date] = "";
-    });
-    
-    const newTask: EssentialTask = {
-      id: Date.now().toString(),
-      name: newTaskName,
-      statuses
-    };
-    
-    setTasks([...tasks, newTask]);
-    setNewTaskName("");
-    
-    toast({
-      title: "Task Added",
-      description: `Added "${newTaskName}" to daily essentials.`,
-    });
-  };
-  
-  const removeTask = (id: string) => {
-    setTasks(tasks.filter(task => task.id !== id));
-    
-    toast({
-      title: "Task Removed",
-      description: "Task has been removed from daily essentials.",
-    });
-  };
-  
-  const updateStatus = (taskId: string, date: string, status: string) => {
-    setTasks(tasks.map(task => {
-      if (task.id === taskId) {
-        return {
-          ...task,
-          statuses: {
-            ...task.statuses,
-            [date]: status
-          }
-        };
-      }
-      return task;
-    }));
-  };
-  
-  const statusOptions = [
-    { value: "not-set", label: "Not set" },
-    { value: "Done", label: "Done" },
-    { value: "Not Done", label: "Not Done" },
-    { value: "Partial", label: "Partial" },
-    { value: "Skipped", label: "Skipped" }
-  ];
-  
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      addTask();
-    }
-  };
-
-  const handlePreviousWeek = () => {
-    setSelectedWeek(prev => {
-      const newDate = subWeeks(prev, 1);
-      setSelectedDate(newDate);
-      return newDate;
-    });
-  };
-
-  const handleNextWeek = () => {
-    setSelectedWeek(prev => {
-      const newDate = addWeeks(prev, 1);
-      setSelectedDate(newDate);
-      return newDate;
-    });
-  };
-
-  const handleCalendarSelect = (date: Date | undefined) => {
-    if (date) {
-      setSelectedDate(date);
-      setSelectedWeek(date);
     }
   };
   
   return (
-    <motion.div 
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
       className="space-y-4"
     >
-      {/* Week selector */}
-      <motion.div variants={itemVariants}>
-        <Card className="bg-gradient-to-br from-blue-900/30 to-blue-900/10 border-white/5 shadow-lg">
-          <CardContent className="p-4">
-            <div className="flex flex-col sm:flex-row justify-between items-center gap-2">
-              <div>
-                <h2 className="text-lg font-semibold">Daily Essentials</h2>
-                <p className="text-sm text-white/60">Track your daily habits and routines</p>
+      <Card className="bg-gradient-to-br from-purple-900/30 to-indigo-900/20 border-white/5 shadow-xl">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-white">Daily Essentials</CardTitle>
+              <CardDescription className="text-white/70">
+                Track your essential daily tasks
+              </CardDescription>
+            </div>
+            <Button
+              variant="outline" 
+              onClick={() => setIsAddingTask(true)}
+              className="bg-white/10 hover:bg-white/20 border-white/20 text-white"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add Task
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="outline" 
+                size="icon" 
+                onClick={goToPreviousWeek}
+                className="bg-white/10 hover:bg-white/20 border-white/20 text-white"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              
+              <span className="px-2 py-1 bg-white/10 rounded-md text-white font-medium">
+                {weekRangeText}
+              </span>
+              
+              <Button 
+                variant="outline" 
+                size="icon" 
+                onClick={goToNextWeek}
+                disabled={isCurrentWeek}
+                className={cn(
+                  "bg-white/10 border-white/20 text-white",
+                  isCurrentWeek ? "opacity-50 cursor-not-allowed" : "hover:bg-white/20"
+                )}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+              
+              {!isCurrentWeek && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={goToCurrentWeek}
+                  className="ml-2 bg-white/10 hover:bg-white/20 border-white/20 text-white text-xs"
+                >
+                  <CalendarDays className="h-3 w-3 mr-1" />
+                  Current Week
+                </Button>
+              )}
+            </div>
+            
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1">
+                <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                <span className="text-xs text-white/70">Done</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" onClick={handlePreviousWeek} className="hover:bg-white/10 transition-colors">
-                  <ChevronLeft className="h-4 w-4 mr-1" /> Previous
-                </Button>
-                
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" size="sm" className="min-w-[150px] hover:bg-white/10 transition-colors">
-                      <CalendarIcon className="h-4 w-4 mr-2" /> 
-                      Week of {format(startOfWeek(selectedWeek, { weekStartsOn: 0 }), "MMM d, yyyy")}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="center">
-                    <Calendar
-                      mode="single"
-                      selected={selectedDate}
-                      onSelect={handleCalendarSelect}
-                      initialFocus
-                      className={cn("p-3 pointer-events-auto")}
-                    />
-                  </PopoverContent>
-                </Popover>
-                
-                <Button variant="outline" size="sm" onClick={handleNextWeek} className="hover:bg-white/10 transition-colors">
-                  Next <ChevronRight className="h-4 w-4 ml-1" />
-                </Button>
+              <div className="flex items-center gap-1">
+                <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
+                <span className="text-xs text-white/70">Partial</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                <span className="text-xs text-white/70">Skipped</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                <span className="text-xs text-white/70">Not Done</span>
               </div>
             </div>
-          </CardContent>
-        </Card>
-      </motion.div>
-    
-      <motion.div variants={itemVariants} className="flex items-center gap-2">
-        <Input
-          placeholder="Add a new daily essential task..."
-          value={newTaskName}
-          onChange={(e) => setNewTaskName(e.target.value)}
-          onKeyDown={handleKeyDown}
-          className="bg-todo-gray/50"
-        />
-        <Button 
-          onClick={addTask} 
-          type="button"
-          className="bg-blue-600 hover:bg-blue-700 transition-colors"
-        >
-          <PlusIcon className="h-5 w-5" />
-        </Button>
-      </motion.div>
-      
-      <motion.div variants={itemVariants} className="border rounded-md overflow-hidden">
-        <ScrollArea className="h-[calc(100vh-320px)]">
-          <div className="min-w-max">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-12 sticky left-0 z-20 bg-todo-dark">No.</TableHead>
-                  <TableHead className="sticky left-12 z-20 bg-todo-dark">Task</TableHead>
-                  {dates.map((date) => (
-                    <TableHead 
-                      key={date} 
-                      className={cn(
-                        "text-center min-w-[100px]",
-                        isToday(date) && "bg-todo-purple/30"
-                      )}
-                    >
-                      {formatDateDisplay(date)}
-                      {isToday(date) && <span className="ml-1">(Today)</span>}
-                    </TableHead>
-                  ))}
-                  <TableHead className="w-12 text-center">Delete</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                <AnimatePresence>
-                  {tasks.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={dates.length + 3} className="text-center py-6 text-muted-foreground">
-                        No daily essential tasks added yet. Add your first task above.
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    tasks.map((task, index) => (
+          </div>
+          
+          <AnimatePresence>
+            {isAddingTask && (
+              <motion.div 
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.3 }}
+                className="mb-4"
+              >
+                <Card className="bg-white/5 border-white/10">
+                  <CardContent className="p-4">
+                    <div className="flex gap-2">
+                      <Input
+                        value={newTaskName}
+                        onChange={(e) => setNewTaskName(e.target.value)}
+                        placeholder="Enter task name (e.g., Meditation, Reading, Exercise)"
+                        className="flex-1 bg-white/10 border-white/20 text-white placeholder:text-white/50"
+                        autoFocus
+                      />
+                      <Button 
+                        onClick={addTask}
+                        className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white"
+                      >
+                        <Save className="h-4 w-4 mr-2" />
+                        Save
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        onClick={() => {
+                          setIsAddingTask(false);
+                          setNewTaskName("");
+                        }}
+                        className="bg-white/10 hover:bg-white/20 border-white/20 text-white"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )}
+          </AnimatePresence>
+          
+          {tasks.length === 0 ? (
+            <motion.div 
+              className="p-6 text-center"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+            >
+              <div className="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center mx-auto mb-4">
+                <AlertCircle className="h-8 w-8 text-white/60" />
+              </div>
+              <h3 className="text-lg font-medium text-white mb-2">No tasks added yet</h3>
+              <p className="text-white/60 mb-4">
+                Add your daily essential tasks to start tracking your habits
+              </p>
+              <Button 
+                onClick={() => setIsAddingTask(true)}
+                className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Your First Task
+              </Button>
+            </motion.div>
+          ) : (
+            <div className="overflow-x-auto pb-2">
+              <ScrollArea className="h-[380px]">
+                <motion.table 
+                  className="w-full"
+                  variants={containerVariants}
+                  initial="hidden"
+                  animate="visible"
+                >
+                  <thead>
+                    <tr>
+                      <th className="text-left pb-4 w-[200px]">
+                        <span className="text-white/80 font-medium">Task Name</span>
+                      </th>
+                      {weekDates.map((date) => (
+                        <th key={date.toISOString()} className="px-1 pb-4 w-[80px]">
+                          <div className={cn(
+                            "flex flex-col items-center rounded-md py-1 px-2",
+                            isToday(date) ? "bg-white/10" : ""
+                          )}>
+                            <span className="text-white/80 text-xs font-normal">
+                              {format(date, 'EEE')}
+                            </span>
+                            <span className={cn(
+                              "text-sm font-medium",
+                              isToday(date) ? "text-white" : "text-white/70"
+                            )}>
+                              {format(date, 'd')}
+                            </span>
+                          </div>
+                        </th>
+                      ))}
+                      <th className="w-[50px]"></th>
+                    </tr>
+                  </thead>
+                  <motion.tbody className="divide-y divide-white/10">
+                    {tasks.map((task) => (
                       <motion.tr 
                         key={task.id}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 10 }}
-                        transition={{ duration: 0.3 }}
-                        className="transition-all"
+                        variants={itemVariants}
+                        className="group"
                       >
-                        <TableCell className="font-medium sticky left-0 z-10 bg-todo-dark">{index + 1}</TableCell>
-                        <TableCell className="sticky left-12 z-10 bg-todo-dark">{task.name}</TableCell>
-                        {dates.map((date) => (
-                          <TableCell key={`${task.id}-${date}`} className="text-center">
-                            <Select
-                              value={task.statuses[date] || "not-set"}
-                              onValueChange={(value) => updateStatus(task.id, date, value)}
-                            >
-                              <SelectTrigger className={cn(
-                                "h-8 w-full transition-colors",
-                                task.statuses[date] === "Done" && "bg-green-900/30 text-green-300",
-                                task.statuses[date] === "Not Done" && "bg-red-900/30 text-red-300",
-                                task.statuses[date] === "Partial" && "bg-yellow-900/30 text-yellow-300",
-                                task.statuses[date] === "Skipped" && "bg-gray-900/30 text-gray-300",
-                              )}>
-                                <SelectValue placeholder="Status" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {statusOptions.map(option => (
-                                  <SelectItem key={option.value} value={option.value}>
-                                    {option.label}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </TableCell>
-                        ))}
-                        <TableCell className="text-center">
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            onClick={() => removeTask(task.id)}
-                            className="text-red-400 bg-red-900/10 hover:bg-red-900/30 transition-colors"
+                        <td className="py-2 pr-4">
+                          <span className="font-medium text-white">{task.name}</span>
+                        </td>
+                        {weekDates.map((date) => {
+                          const dateStr = date.toISOString().split('T')[0];
+                          const status = getStatus(task, dateStr);
+                          
+                          return (
+                            <td key={dateStr} className="px-1 py-2">
+                              <Select
+                                value={status}
+                                onValueChange={(value: Status) => updateTaskStatus(task.id, dateStr, value)}
+                              >
+                                <SelectTrigger 
+                                  className={cn(
+                                    "w-16 h-7 justify-center border-0 shadow-sm focus:ring-1 focus:ring-white/30 font-medium text-xs",
+                                    statusStyles[status] || "bg-secondary text-white/60"
+                                  )}
+                                >
+                                  {status ? (
+                                    <SelectValue>
+                                      {status === "Done" && <Check className="h-3.5 w-3.5" />}
+                                      {status === "Partial" && <span className="text-xs">50%</span>}
+                                      {status === "Skipped" && <span className="text-xs">Skip</span>}
+                                      {status === "Not Done" && <X className="h-3.5 w-3.5" />}
+                                    </SelectValue>
+                                  ) : (
+                                    <SelectValue>—</SelectValue>
+                                  )}
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="">Not Set</SelectItem>
+                                  <SelectItem value="Done">Done</SelectItem>
+                                  <SelectItem value="Partial">Partial</SelectItem>
+                                  <SelectItem value="Skipped">Skipped</SelectItem>
+                                  <SelectItem value="Not Done">Not Done</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </td>
+                          );
+                        })}
+                        <td className="py-2 text-right">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => deleteTask(task.id)}
+                            className="opacity-0 group-hover:opacity-100 transition-opacity"
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <X className="h-4 w-4 text-white/60" />
                           </Button>
-                        </TableCell>
+                        </td>
                       </motion.tr>
-                    ))
-                  )}
-                </AnimatePresence>
-              </TableBody>
-            </Table>
-          </div>
-        </ScrollArea>
-      </motion.div>
-      
-      <motion.div 
-        variants={itemVariants}
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
-        className="mt-4"
-      >
-        <Button 
-          className="w-full bg-todo-purple hover:bg-todo-purple/90 transition-colors"
-          onClick={() => {
-            toast({
-              title: "Progress Saved",
-              description: "Your daily essentials progress has been saved.",
-            });
-          }}
-        >
-          Save Progress
-        </Button>
-      </motion.div>
+                    ))}
+                  </motion.tbody>
+                </motion.table>
+              </ScrollArea>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </motion.div>
   );
 }

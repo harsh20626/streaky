@@ -1,4 +1,3 @@
-
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { TodoList } from "@/components/TodoList";
 import { TaskAnalytics } from "@/components/TaskAnalytics";
@@ -8,12 +7,11 @@ import { Journal } from "@/components/Journal";
 import { DailyEssentialsTable } from "@/components/DailyEssentials/DailyEssentialsTable";
 import { DailyEssentialsAnalytics } from "@/components/DailyEssentials/DailyEssentialsAnalytics";
 import { DailyEssentialsDetailedAnalytics } from "@/components/DailyEssentials/DailyEssentialsDetailedAnalytics";
+import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
-import { ProductivityDashboard } from "./ProductivityDashboard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, BarChart3, Calendar, CheckSquare, PieChart } from "lucide-react";
-import { motion } from "framer-motion";
+import { ArrowRight, BarChart3, CheckSquare, PieChart, Calendar, Award, Zap, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface DashboardProps {
@@ -62,7 +60,7 @@ export function Dashboard({ activeTab = "dashboard", onTabChange }: DashboardPro
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.1
+        staggerChildren: 0.15
       }
     }
   };
@@ -95,119 +93,206 @@ export function Dashboard({ activeTab = "dashboard", onTabChange }: DashboardPro
           >
             {/* Welcome Card */}
             <motion.div variants={itemVariants}>
-              <Card className="bg-sidebar/30 border-white/5 overflow-hidden relative">
+              <Card className="bg-gradient-to-br from-purple-900/40 to-blue-900/20 border-white/5 overflow-hidden relative">
                 <div 
-                  className="absolute top-0 right-0 w-64 h-64 bg-sidebar rounded-full -mt-12 -mr-12 opacity-30 blur-3xl"
+                  className="absolute top-0 right-0 w-80 h-80 bg-purple-500/20 rounded-full -mt-20 -mr-20 opacity-30 blur-3xl"
                   aria-hidden="true"
                 />
-                <CardContent className="pt-6 pb-8">
-                  <h1 className="text-3xl font-bold tracking-tight mb-1">{greeting}</h1>
-                  <p className="text-white/60">Here's an overview of your productivity and daily essentials.</p>
+                <CardContent className="pt-8 pb-8">
+                  <h1 className="text-4xl font-bold text-gradient-primary mb-2">{greeting}</h1>
+                  <p className="text-white/70 max-w-lg">Here's a quick overview of your productivity. Access detailed analytics using the cards below.</p>
                 </CardContent>
               </Card>
             </motion.div>
             
-            {/* Quick Actions Grid - Cleaner, more organized */}
-            <motion.div
-              variants={itemVariants}
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
-            >
-              <Card className="bg-gradient-to-br from-purple-900/30 to-purple-900/10 border-white/5 hover:bg-sidebar/30 transition-colors group">
-                <CardContent className="p-6 flex justify-between items-center">
-                  <div>
-                    <h3 className="font-medium mb-1">My Tasks</h3>
-                    <p className="text-sm text-white/60">Manage your todo list</p>
-                  </div>
-                  <div className="h-12 w-12 rounded-md bg-purple-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <CheckSquare className="h-6 w-6 text-purple-300" />
-                  </div>
-                </CardContent>
-                <div className="px-6 pb-4">
-                  <Button 
-                    className="w-full"
-                    variant="outline"
-                    onClick={() => onTabChange && onTabChange("today")}
-                  >
-                    View Tasks
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                </div>
-              </Card>
-              
-              <Card className="bg-gradient-to-br from-blue-900/30 to-blue-900/10 border-white/5 hover:bg-sidebar/30 transition-colors group">
-                <CardContent className="p-6 flex justify-between items-center">
-                  <div>
-                    <h3 className="font-medium mb-1">Daily Essentials</h3>
-                    <p className="text-sm text-white/60">Track your daily habits</p>
-                  </div>
-                  <div className="h-12 w-12 rounded-md bg-blue-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <Calendar className="h-6 w-6 text-blue-300" />
-                  </div>
-                </CardContent>
-                <div className="px-6 pb-4">
-                  <Button 
-                    className="w-full"
-                    variant="outline"
-                    onClick={() => onTabChange && onTabChange("essentials")}
-                  >
-                    View Habits
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                </div>
-              </Card>
-              
-              <Card className="bg-gradient-to-br from-green-900/30 to-green-900/10 border-white/5 hover:bg-sidebar/30 transition-colors group">
-                <CardContent className="p-6 flex justify-between items-center">
-                  <div>
-                    <h3 className="font-medium mb-1">Task Analytics</h3>
-                    <p className="text-sm text-white/60">See your task progress</p>
-                  </div>
-                  <div className="h-12 w-12 rounded-md bg-green-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <BarChart3 className="h-6 w-6 text-green-300" />
-                  </div>
-                </CardContent>
-                <div className="px-6 pb-4">
-                  <Button 
-                    className="w-full"
-                    variant="outline"
-                    onClick={() => onTabChange && onTabChange("analytics")}
-                  >
-                    View Analytics
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                </div>
-              </Card>
-              
-              <Card className="bg-gradient-to-br from-orange-900/30 to-orange-900/10 border-white/5 hover:bg-sidebar/30 transition-colors group">
-                <CardContent className="p-6 flex justify-between items-center">
-                  <div>
-                    <h3 className="font-medium mb-1">Habits Analytics</h3>
-                    <p className="text-sm text-white/60">Track your habit progress</p>
-                  </div>
-                  <div className="h-12 w-12 rounded-md bg-orange-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <PieChart className="h-6 w-6 text-orange-300" />
-                  </div>
-                </CardContent>
-                <div className="px-6 pb-4">
-                  <Button 
-                    className="w-full"
-                    variant="outline"
-                    onClick={() => onTabChange && onTabChange("essentials-analytics")}
-                  >
-                    View Details
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                </div>
-              </Card>
-            </motion.div>
-            
-            {/* Main Dashboard Content - More minimal and focused */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <motion.div variants={itemVariants}>
-                <ProductivityDashboard />
+            {/* Grid of Colorful Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Card 1 - Tasks */}
+              <motion.div 
+                variants={itemVariants}
+                whileHover={{ y: -5, transition: { duration: 0.2 } }}
+              >
+                <Card className="bg-gradient-to-br from-indigo-900/40 to-indigo-600/10 border-white/10 h-full shadow-lg overflow-hidden relative hover:bg-indigo-900/30 transition-colors">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/20 rounded-full -mt-12 -mr-12 opacity-30 blur-2xl" />
+                  <CardHeader className="pb-2">
+                    <div className="flex justify-between items-center">
+                      <CardTitle className="text-white/90 text-lg">Tasks</CardTitle>
+                      <CheckSquare className="h-5 w-5 text-indigo-400" />
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex flex-col justify-between h-full">
+                      <div>
+                        <p className="text-3xl font-bold text-white mb-1">5</p>
+                        <p className="text-white/60 text-sm">pending tasks</p>
+                      </div>
+                      <Button 
+                        className="w-full mt-4 bg-indigo-600/40 hover:bg-indigo-600/60 text-white border-none"
+                        onClick={() => onTabChange && onTabChange("today")}
+                      >
+                        View Tasks
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
               </motion.div>
-              <motion.div variants={itemVariants}>
-                <DailyEssentialsAnalytics />
+              
+              {/* Card 2 - Essentials */}
+              <motion.div 
+                variants={itemVariants}
+                whileHover={{ y: -5, transition: { duration: 0.2 } }}
+              >
+                <Card className="bg-gradient-to-br from-cyan-900/40 to-cyan-600/10 border-white/10 h-full shadow-lg overflow-hidden relative hover:bg-cyan-900/30 transition-colors">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/20 rounded-full -mt-12 -mr-12 opacity-30 blur-2xl" />
+                  <CardHeader className="pb-2">
+                    <div className="flex justify-between items-center">
+                      <CardTitle className="text-white/90 text-lg">Daily Habits</CardTitle>
+                      <Calendar className="h-5 w-5 text-cyan-400" />
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex flex-col justify-between h-full">
+                      <div>
+                        <p className="text-3xl font-bold text-white mb-1">70%</p>
+                        <p className="text-white/60 text-sm">completion rate</p>
+                      </div>
+                      <Button 
+                        className="w-full mt-4 bg-cyan-600/40 hover:bg-cyan-600/60 text-white border-none"
+                        onClick={() => onTabChange && onTabChange("essentials")}
+                      >
+                        View Habits
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+              
+              {/* Card 3 - Task Analytics */}
+              <motion.div 
+                variants={itemVariants}
+                whileHover={{ y: -5, transition: { duration: 0.2 } }}
+              >
+                <Card className="bg-gradient-to-br from-pink-900/40 to-pink-600/10 border-white/10 h-full shadow-lg overflow-hidden relative hover:bg-pink-900/30 transition-colors">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-pink-500/20 rounded-full -mt-12 -mr-12 opacity-30 blur-2xl" />
+                  <CardHeader className="pb-2">
+                    <div className="flex justify-between items-center">
+                      <CardTitle className="text-white/90 text-lg">Task Analytics</CardTitle>
+                      <BarChart3 className="h-5 w-5 text-pink-400" />
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex flex-col justify-between h-full">
+                      <div>
+                        <p className="text-3xl font-bold text-white mb-1">85%</p>
+                        <p className="text-white/60 text-sm">weekly progress</p>
+                      </div>
+                      <Button 
+                        className="w-full mt-4 bg-pink-600/40 hover:bg-pink-600/60 text-white border-none"
+                        onClick={() => onTabChange && onTabChange("analytics")}
+                      >
+                        View Analytics
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+              
+              {/* Card 4 - Habit Analytics */}
+              <motion.div 
+                variants={itemVariants}
+                whileHover={{ y: -5, transition: { duration: 0.2 } }}
+              >
+                <Card className="bg-gradient-to-br from-amber-900/40 to-amber-600/10 border-white/10 h-full shadow-lg overflow-hidden relative hover:bg-amber-900/30 transition-colors">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/20 rounded-full -mt-12 -mr-12 opacity-30 blur-2xl" />
+                  <CardHeader className="pb-2">
+                    <div className="flex justify-between items-center">
+                      <CardTitle className="text-white/90 text-lg">Habit Analytics</CardTitle>
+                      <PieChart className="h-5 w-5 text-amber-400" />
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex flex-col justify-between h-full">
+                      <div>
+                        <p className="text-3xl font-bold text-white mb-1">76%</p>
+                        <p className="text-white/60 text-sm">habit consistency</p>
+                      </div>
+                      <Button 
+                        className="w-full mt-4 bg-amber-600/40 hover:bg-amber-600/60 text-white border-none"
+                        onClick={() => onTabChange && onTabChange("essentials-analytics")}
+                      >
+                        View Analytics
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            </div>
+
+            {/* Second Row - 2 Wider Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Card 5 - Streak */}
+              <motion.div 
+                variants={itemVariants}
+                whileHover={{ y: -5, transition: { duration: 0.2 } }}
+              >
+                <Card className="bg-gradient-to-br from-green-900/40 to-teal-700/10 border-white/10 shadow-lg overflow-hidden relative hover:bg-green-900/30 transition-colors">
+                  <div className="absolute top-0 right-0 w-40 h-40 bg-green-500/20 rounded-full -mt-20 -mr-20 opacity-20 blur-2xl" />
+                  <CardHeader className="pb-2">
+                    <div className="flex justify-between items-center">
+                      <CardTitle className="text-white/90 text-lg">Productivity Streak</CardTitle>
+                      <Zap className="h-5 w-5 text-green-400" />
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center gap-6">
+                      <div className="bg-green-500/20 h-16 w-16 rounded-full flex items-center justify-center">
+                        <span className="text-2xl font-bold text-white">5</span>
+                      </div>
+                      <div>
+                        <p className="text-white font-medium">5-Day Streak</p>
+                        <p className="text-white/60 text-sm">Keep it going! Your longest streak was 12 days.</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+              
+              {/* Card 6 - Pomodoro */}
+              <motion.div 
+                variants={itemVariants}
+                whileHover={{ y: -5, transition: { duration: 0.2 } }}
+              >
+                <Card className="bg-gradient-to-br from-rose-900/40 to-red-700/10 border-white/10 shadow-lg overflow-hidden relative hover:bg-rose-900/30 transition-colors">
+                  <div className="absolute top-0 right-0 w-40 h-40 bg-rose-500/20 rounded-full -mt-20 -mr-20 opacity-20 blur-2xl" />
+                  <CardHeader className="pb-2">
+                    <div className="flex justify-between items-center">
+                      <CardTitle className="text-white/90 text-lg">Focus Time</CardTitle>
+                      <Clock className="h-5 w-5 text-rose-400" />
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center gap-6">
+                      <div className="bg-rose-500/20 h-16 w-16 rounded-full flex items-center justify-center">
+                        <span className="text-2xl font-bold text-white">2h</span>
+                      </div>
+                      <div>
+                        <p className="text-white font-medium">2 Hours Today</p>
+                        <p className="text-white/60 text-sm">Start a Pomodoro session to increase focus time.</p>
+                        <Button 
+                          className="mt-2 bg-rose-600/40 hover:bg-rose-600/60 text-white border-none"
+                          size="sm"
+                          onClick={() => onTabChange && onTabChange("pomodoro")}
+                        >
+                          Start Session
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
               </motion.div>
             </div>
           </motion.div>
